@@ -13,7 +13,7 @@ const encode = (x, y, type) => {
 }
 
 const decode = (str) => {
-    let arr = str.aplit('.');
+    let arr = str.split('.');
     return [Number(arr[0]), Number(arr[1]), arr[2]];
 }
 
@@ -47,5 +47,30 @@ for (const path of puzzleData) {
 /*
     Sand flows from (500,0)
 */
+let lowestRockLevel = new Map();
+allTiles.forEach(tile => {
+    const rockTile = decode(tile).slice(0,2);
+    if (!lowestRockLevel.has(rockTile[0]) || lowestRockLevel.get(rockTile[0]) < rockTile[1]) {
+        lowestRockLevel.set(rockTile[0], rockTile[1]);
+    }
+})
 
-console.log(allTiles.size);
+const fallsToAbyssFrom = (x, y) => {
+    if (!lowestRockLevel.has(x) || lowestRockLevel.get(x) < y) {
+        return true;
+    }
+    return false;
+}
+
+let unitsDropped = 0;
+let stop = false;
+
+const dropUnitOfSand = () => {
+    let posX = 500;
+    let posY = 0;
+    let rests = false;
+
+    while (!rests && !fallsToAbyssFrom(posX, posY)) {
+        
+    }
+}

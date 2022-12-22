@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { PassThrough } = require('stream');
 
 const openFile = (filename) => {
     let data = fs.readFileSync(filename, {encoding: 'utf-8'});
@@ -62,15 +63,62 @@ const fallsToAbyssFrom = (x, y) => {
     return false;
 }
 
-let unitsDropped = 0;
-let stop = false;
+const partOne = false;
 
-const dropUnitOfSand = () => {
+if (partOne) {
+  let unitsDropped = 0;
+  let stop = false;
+
+  const dropUnitOfSand = () => {
     let posX = 500;
     let posY = 0;
     let rests = false;
 
-    while (!rests && !fallsToAbyssFrom(posX, posY)) {
-        
+    if (fallsToAbyssFrom(posX, posY)) {
+      unitsDropped++;
+      return true;
     }
+
+    const nextPos = (x, y) => {
+      if (
+        !allTiles.has(encode(posX, posY + 1, "rock")) &&
+        !allTiles.has(encode(posX, posY + 1, "sand"))
+      ) {
+        return [x, y + 1];
+      }
+      if (
+        !allTiles.has(encode(posX - 1, posY + 1, "rock")) &&
+        !allTiles.has(encode(posX - 1, posY + 1, "sand"))
+      ) {
+        return [x - 1, y + 1];
+      }
+      if (
+        !allTiles.has(encode(posX + 1, posY + 1, "rock")) &&
+        !allTiles.has(encode(posX + 1, posY + 1, "sand"))
+      ) {
+        return [x + 1, y + 1];
+      }
+      return false;
+    };
+
+    while (nextPos(posX, posY) && !fallsToAbyssFrom(posX, posY)) {
+      [posX, posY] = nextPos(posX, posY);
+    }
+
+    if (fallsToAbyssFrom(posX, posY)) {
+      unitsDropped++;
+      return true;
+    } else {
+      unitsDropped++;
+      allTiles.add(encode(posX, posY, "sand"));
+      return false;
+    }
+  };
+
+  console.log(allTiles.size, unitsDropped);
+  while (!dropUnitOfSand()) {
+    continue;
+  }
+  console.log(allTiles.size, unitsDropped);
 }
+

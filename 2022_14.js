@@ -63,6 +63,28 @@ const fallsToAbyssFrom = (x, y) => {
     return false;
 }
 
+const nextPos = (x, y) => {
+    if (
+      !allTiles.has(encode(x, y + 1, "rock")) &&
+      !allTiles.has(encode(x, y + 1, "sand"))
+    ) {
+      return [x, y + 1];
+    }
+    if (
+      !allTiles.has(encode(x - 1, y + 1, "rock")) &&
+      !allTiles.has(encode(x - 1, y + 1, "sand"))
+    ) {
+      return [x - 1, y + 1];
+    }
+    if (
+      !allTiles.has(encode(x + 1, y + 1, "rock")) &&
+      !allTiles.has(encode(x + 1, y + 1, "sand"))
+    ) {
+      return [x + 1, y + 1];
+    }
+    return false;
+  };
+
 const partOne = false;
 
 if (partOne) {
@@ -78,28 +100,6 @@ if (partOne) {
       unitsDropped++;
       return true;
     }
-
-    const nextPos = (x, y) => {
-      if (
-        !allTiles.has(encode(posX, posY + 1, "rock")) &&
-        !allTiles.has(encode(posX, posY + 1, "sand"))
-      ) {
-        return [x, y + 1];
-      }
-      if (
-        !allTiles.has(encode(posX - 1, posY + 1, "rock")) &&
-        !allTiles.has(encode(posX - 1, posY + 1, "sand"))
-      ) {
-        return [x - 1, y + 1];
-      }
-      if (
-        !allTiles.has(encode(posX + 1, posY + 1, "rock")) &&
-        !allTiles.has(encode(posX + 1, posY + 1, "sand"))
-      ) {
-        return [x + 1, y + 1];
-      }
-      return false;
-    };
 
     while (nextPos(posX, posY) && !fallsToAbyssFrom(posX, posY)) {
       [posX, posY] = nextPos(posX, posY);
@@ -120,5 +120,78 @@ if (partOne) {
     continue;
   }
   console.log(allTiles.size, unitsDropped);
+}
+
+/*
+    Part Two
+*/
+const partTwo = true;
+
+if (partTwo) {
+
+    // Create the floor
+    let leftEdge = 500;
+    let rightEdge = 500;
+    let depth = 0;
+    allTiles.forEach((tile) => {
+        const rockTile = decode(tile).slice(0,2);
+        leftEdge = Math.min(leftEdge, rockTile[0]);
+        rightEdge = Math.max(rightEdge, rockTile[0]);
+        depth = Math.max(depth, rockTile[1]);
+    });
+
+    leftEdge = leftEdge - 1 * depth;
+    rightEdge = rightEdge + 1 * depth;
+    depth = depth + 2;
+
+    for (let x = leftEdge; x <= rightEdge; x++) {
+        allTiles.add(encode(x, depth, 'rock'));
+    }
+
+    let unitsDropped = 0;
+
+    // Start pouring
+    const dropUnitOfSand = () => {
+        let posX = 500;
+        let posY = 0;
+        
+
+        while (nextPos(posX, posY)) {
+            [posX, posY] = nextPos(posX, posY);
+        }
+
+        unitsDropped++;
+        allTiles.add(encode(posX, posY, 'sand'));
+
+        if (posX === 500 && posY === 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    const draw = () => {
+        for (let y = 0; y <= depth; y++) {
+          let hor = "";
+          for (let x = leftEdge; x <= rightEdge; x++) {
+            if (allTiles.has(encode(x, y, "rock"))) {
+              hor += "#";
+            } else if (allTiles.has(encode(x, y, "sand"))) {
+              hor += "O";
+            } else {
+              hor += ".";
+            }
+          }
+          console.log(hor);
+        }
+      };
+
+    console.log(allTiles.size, unitsDropped);
+   
+    while (!dropUnitOfSand()) {
+        continue;
+    }
+    console.log(allTiles.size, unitsDropped);
+    
 }
 

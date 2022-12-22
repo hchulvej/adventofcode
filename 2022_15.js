@@ -44,6 +44,14 @@ class Sensor {
     beaconPos() {
         return `${this.bx}.${this.by}`;
     }
+
+    sensorPos() {
+        return [this.x, this.y];
+    }
+
+    getDistanceToBeacon() {
+        return this.distanceToBeacon;
+    }
 }
 
 let sensors = [];
@@ -77,4 +85,26 @@ const noBeacons = (y) => {
     return notHere;
 }
 
-console.log(noBeacons(2000000));
+// console.log(noBeacons(2000000));
+
+/*
+    Part Two: grid 0-4000000 x2
+*/
+const perimeter = (sensor) => {
+    const [sx, sy] = sensor.sensorPos();
+    const radius = sensor.getDistanceToBeacon() + 1;
+    // Top, Right, Bottom, Left
+    const corners = [[sx, sy + radius], [sx + radius, sy], [sx, sy - radius], [sx - radius, sy]];
+    // Line from (x1,y1) and (x2,y2)
+    // Top->Right: slope = -1
+    // y + x = sx + sy + radius
+    // Right->Bottom: slope = 1
+    // y - x = sy - sx - radius
+    // Bottom->Left: slope = -1
+    // y + x = sx + sy - radius
+    // Left->Top: slope = 1
+    // y - x = sy - sx + radius
+    return [[-1, sx + sy + radius], [1, sy - sx - radius], [-1, sx + sy - radius], [1, sy - sx + radius]];
+}
+
+console.log(perimeter(sensors[0]));

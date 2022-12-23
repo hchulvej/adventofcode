@@ -90,11 +90,11 @@ const noBeacons = (y) => {
 /*
     Part Two: grid 0-4000000 x2
 */
-const perimeter = (sensor) => {
+const perimeter = (sensor, quadrant) => {
     const [sx, sy] = sensor.sensorPos();
     const radius = sensor.getDistanceToBeacon() + 1;
     // Top, Right, Bottom, Left
-    const corners = [[sx, sy + radius], [sx + radius, sy], [sx, sy - radius], [sx - radius, sy]];
+    const  corners = [[sx, sy + radius], [sx + radius, sy], [sx, sy - radius], [sx - radius, sy]];
     // Line from (x1,y1) and (x2,y2)
     // Top->Right: slope = -1
     // y + x = sx + sy + radius
@@ -104,7 +104,80 @@ const perimeter = (sensor) => {
     // y + x = sx + sy - radius
     // Left->Top: slope = 1
     // y - x = sy - sx + radius
-    return [[-1, sx + sy + radius], [1, sy - sx - radius], [-1, sx + sy - radius], [1, sy - sx + radius]];
+    let perim = [];
+    if (quadrant === 1) {
+        for (let i = 0; i <= radius; i++) {
+            perim.push(`${sx + i}.${sy + radius - i}`);
+        }
+    }
+    if (quadrant === 4) {
+        for (let i = 0; i <= radius; i++) {
+            perim.push(`${sx + radius - i}.${sy - i}`);
+        }
+    }    
+    if (quadrant === 3) {
+        for (let i = 0; i <= radius; i++) {
+            perim.push(`${sx  - i}.${sy - radius + i}`);
+        }
+    }
+    if (quadrant === 2) {
+        for (let i = 0; i <= radius; i++) {
+            perim.push(`${sx - radius + i}.${sy + i}`);
+        }
+    }
+    return [perim, corners];
 }
 
-console.log(perimeter(sensors[0]));
+const manhattan = (x1, y1, x2, y2) => {
+    return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+const sensorToSensor = (sensor1, sensor2) => {
+    let [x1, y1, x2, y2] = [...sensor1.sensorPos(), ...sensor2.sensorPos()];
+    return manhattan(x1, y1, x2, y2);
+}
+
+const sensorsTooFarApart = (sensor1, sensor2) => {
+    return sensorToSensor(sensor1, sensor2) > sensor1.getDistanceToBeacon() + sensor2.getDistanceToBeacon();
+}
+
+const relativePosition = (sensor1, sensor2) => {
+    let [x1, y1, x2, y2] = [...sensor1.sensorPos(), ...sensor2.sensorPos()];
+    if (x1 === x2) {
+        if (y1 < y2) {
+            return 'above';
+        } else {
+            return 'below';
+        }
+    }
+    if (y1 === y2) {
+        if (x1 < x2) {
+            return 'right';
+        } else {
+            return 'left';
+        }
+    }
+
+    if (x1 < x2) {
+        if (y1 < y2) {
+            return 1;
+        } else {
+            return 4;
+        }
+    }
+
+    if (x1 > x2) {
+        if (y1 < y2) {
+            return 2;
+        } else {
+            return 3;
+        }
+    }
+}
+
+let relevantSensors = new Map();
+for (let i = 0; i < sensors.length; i++) {
+    relevantSensors.set(i, []);
+}
+
+console.log(sensorToSensor(sensors[0], sensors[1]));

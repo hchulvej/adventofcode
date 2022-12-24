@@ -20,164 +20,61 @@ const parseLine = (line) => {
     return [2, 3, 8, 9].map(x => arr[x]).map(clean).map(x => Number(x));
 }
 
-class Sensor {
-    constructor(coordinates) {
-        this.x = coordinates[0];
-        this.y = coordinates[1];
-        this.bx = coordinates[2];
-        this.by = coordinates[3];
-        this.distanceToBeacon = this.dist(this.bx, this.by);
-    }
-
-    dist(x, y) {
-        return Math.abs(x - this.x) + Math.abs(y - this.y);
-    }
-
-    closer(x, y) {
-        return this.dist(x, y) <= this.distanceToBeacon;
-    }
-
-    limits(y) {
-        return [this.x - this.distanceToBeacon, this.x + this.distanceToBeacon];
-    }
-
-    beaconPos() {
-        return `${this.bx}.${this.by}`;
-    }
-
-    sensorPos() {
-        return [this.x, this.y];
-    }
-
-    getDistanceToBeacon() {
-        return this.distanceToBeacon;
-    }
-}
-
-let sensors = [];
-for (const line of puzzleData) {
-    sensors.push(new Sensor(parseLine(line)))
-}
-
-const noBeacons = (y) => {
-    let leftLimit = Number.POSITIVE_INFINITY;
-    let rightLimit = Number.NEGATIVE_INFINITY;
-    let beacons = new Set();
-    let notHere = 0;
-
-    for (const sensor of sensors) {
-        leftLimit = Math.min(leftLimit, sensor.limits(y)[0]);
-        rightLimit = Math.max(rightLimit, sensor.limits(y)[1]);
-        beacons.add(sensor.beaconPos());
-    }
-
-    for (let x = leftLimit; x <= rightLimit; x++) {
-        let here = true;
-        for (const sensor of sensors) {
-            if (sensor.closer(x, y)) {
-                here = false;
-            }
-        }
-        if (!here && !beacons.has(`${x}.${y}`)) {
-            notHere++;
-        }
-    }
-    return notHere;
-}
-
-// console.log(noBeacons(2000000));
-
 /*
-    Part Two: grid 0-4000000 x2
-*/
-const perimeter = (sensor, quadrant) => {
-    const [sx, sy] = sensor.sensorPos();
-    const radius = sensor.getDistanceToBeacon() + 1;
-    // Top, Right, Bottom, Left
-    const  corners = [[sx, sy + radius], [sx + radius, sy], [sx, sy - radius], [sx - radius, sy]];
-    // Line from (x1,y1) and (x2,y2)
-    // Top->Right: slope = -1
-    // y + x = sx + sy + radius
-    // Right->Bottom: slope = 1
-    // y - x = sy - sx - radius
-    // Bottom->Left: slope = -1
-    // y + x = sx + sy - radius
-    // Left->Top: slope = 1
-    // y - x = sy - sx + radius
-    let perim = [];
-    if (quadrant === 1) {
-        for (let i = 0; i <= radius; i++) {
-            perim.push(`${sx + i}.${sy + radius - i}`);
-        }
-    }
-    if (quadrant === 4) {
-        for (let i = 0; i <= radius; i++) {
-            perim.push(`${sx + radius - i}.${sy - i}`);
-        }
-    }    
-    if (quadrant === 3) {
-        for (let i = 0; i <= radius; i++) {
-            perim.push(`${sx  - i}.${sy - radius + i}`);
-        }
-    }
-    if (quadrant === 2) {
-        for (let i = 0; i <= radius; i++) {
-            perim.push(`${sx - radius + i}.${sy + i}`);
-        }
-    }
-    return [perim, corners];
-}
+    Sensors, beacons and distances
 
-const manhattan = (x1, y1, x2, y2) => {
+    sensor: ["s_x.s_y", dist]
+    beacon: ["b_x.b_y"]
+*/
+const dist = (x1, y1, x2, y2) => {
     return Math.abs(x1 - x2) + Math.abs(y1 - y2);
 }
 
-const sensorToSensor = (sensor1, sensor2) => {
-    let [x1, y1, x2, y2] = [...sensor1.sensorPos(), ...sensor2.sensorPos()];
-    return manhattan(x1, y1, x2, y2);
+const encode = (x, y) => {
+    return `${x}.${y}`;
 }
 
-const sensorsTooFarApart = (sensor1, sensor2) => {
-    return sensorToSensor(sensor1, sensor2) > sensor1.getDistanceToBeacon() + sensor2.getDistanceToBeacon();
+const decode = (coords) => {
+    return coords.split('.').map(t => Number(t));
 }
 
-const relativePosition = (sensor1, sensor2) => {
-    let [x1, y1, x2, y2] = [...sensor1.sensorPos(), ...sensor2.sensorPos()];
-    if (x1 === x2) {
-        if (y1 < y2) {
-            return 'above';
-        } else {
-            return 'below';
-        }
-    }
-    if (y1 === y2) {
-        if (x1 < x2) {
-            return 'right';
-        } else {
-            return 'left';
-        }
-    }
+let sensors = [];
+let beacons = [];
 
-    if (x1 < x2) {
-        if (y1 < y2) {
-            return 1;
-        } else {
-            return 4;
-        }
-    }
-
-    if (x1 > x2) {
-        if (y1 < y2) {
-            return 2;
-        } else {
-            return 3;
-        }
-    }
+for (const line of puzzleData) {
+    const [s_x, s_y, b_x, b_y] = parseLine(line);
+    sensors.push([encode(s_x, s_y), dist(s_x, s_y, b_x, b_y)]);
+    beacons.push(encode(b_x, b_y));
 }
 
-let relevantSensors = new Map();
-for (let i = 0; i < sensors.length; i++) {
-    relevantSensors.set(i, []);
+/*
+    A point (with no known beacon) doesn't have a beacon, if there is a sensor closer to it
+    than the sensor's distance to the closest beacon
+*/
+const possibleNewBeacon = (x,y) => {
+    if (beacons.includes(encode(x, y))) {
+        return false;
+    }
+    for (const sensor of sensors) {
+        if (dist(x, y, ...sensor[0]) <= sensor[1]) {
+            return false;
+        }
+    }
+    return true;
 }
 
-console.log(sensorToSensor(sensors[0], sensors[1]));
+let min_x = Number.POSITIVE_INFINITY;
+let max_x = Number.NEGATIVE_INFINITY;
+let min_y = Number.POSITIVE_INFINITY;
+let max_y = Number.NEGATIVE_INFINITY;
+for (const sensor of sensors) {
+    let [s_x, s_y] = decode(sensor[0]);
+    min_x = Math.min(min_x, s_x - sensor[1]);
+    max_x = Math.max(max_x, s_x + sensor[1]);
+    min_y = Math.min(min_y, s_y - sensor[1]);
+    max_y = Math.max(max_y, s_y + sensor[1]);
+}
+
+
+console.log(min_x, max_x, min_y, max_y);
+

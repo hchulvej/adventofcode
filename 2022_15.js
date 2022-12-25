@@ -48,15 +48,14 @@ for (const line of puzzleData) {
 }
 
 /*
-    A point (with no known beacon) doesn't have a beacon, if there is a sensor closer to it
+    A point doesn't have a beacon, if there is a sensor closer to it
     than the sensor's distance to the closest beacon
+
+    When counting, remember to subtract known beacons
 */
 const possibleNewBeacon = (x,y) => {
-    if (beacons.includes(encode(x, y))) {
-        return false;
-    }
     for (const sensor of sensors) {
-        if (dist(x, y, ...sensor[0]) <= sensor[1]) {
+        if (dist(x, y, ...decode(sensor[0])) <= sensor[1]) {
             return false;
         }
     }
@@ -75,6 +74,101 @@ for (const sensor of sensors) {
     max_y = Math.max(max_y, s_y + sensor[1]);
 }
 
+// console.log(min_x, max_x);
 
-console.log(min_x, max_x, min_y, max_y);
+const noBeacons = (y) => {
+    let countS = 0;
+    let countB = 0;
+    for (let x = min_x; x <= max_x; x++) {
+        if (!possibleNewBeacon(x, y)) {
+            countS++;
+        }
+        if (beacons.includes(encode(x, y))) {
+            countB++;
+        }
+    }
+    return countS - countB;
+}
+
+const partOne = false;
+if (partOne) {
+    console.log(noBeacons(2000000));
+}
+
+
+/*
+    Part Two:
+
+    Main idea:
+
+    Only check borders around no-beacon areas of sensors
+
+    i.e. where the distance is 1 + distance to nearest beacon
+
+    The unique point must be on an intersection of two borders
+*/
+const check = (x, y) => {
+    if (x < 0 || y < 0 || x > 4000000 || y > 4000000) {
+        return false;
+    }
+    return possibleNewBeacon(x, y) && !beacons.includes(encode(x,y));
+}
+
+const discretePath = (s_x, s_y, dist) => {
+    return (t) => {
+        if (t >= 4 * dist) {
+            t = t % (4 * dist); 
+        }
+        if (t >= 0 && t < dist) {
+            return [s_x + dist - t, s_y + t];
+        }
+        if (t >= dist && t < 2 * dist) {
+            return [s_x + dist - t, s_y + 2 * dist - t];
+        }
+        if (t >= 2 * dist && t < 3 * dist) {
+            return [s_x - 3 * dist + t, s_y + 2 * dist - t];
+        }
+        if (t >= 3 * dist && t < 4 * dist) {
+            return [s_x - 3 * dist + t, s_y - 4 * dist + t];
+        }
+    }
+} 
+
+const intersection = (sensor1, sensor2) => {
+    if (dist(...decode(sensor1[0]), ...decode(sensor2[0])) > sensor1[1] + sensor2[1] + 2) {
+        return new Set();
+    }
+    let res = new Set();
+    if (sensor1[1] > sensor2[1]) {
+        return intersection(sensor2, sensor1);
+    }
+    let p = discretePath(...decode(sensor1[0]), sensor1[1] + 1);
+    for (let t = 0; t < 4 * sensor1[1]; t++) {
+        if (dist(...p(t), ...decode(sensor2[0])) === sensor2[1] + 1) {
+            res.add(encode(...p(t)));
+        }
+    }
+    return res;
+}
+
+let possibilities = new Set();
+
+for (let i = 0; i < sensors.length - 1; i++) {
+    for (let k = 1; k + i < sensors.length; k++) {
+        let intSec = intersection(sensors[i], sensors[i + k]);
+        if (intSec.size > 0) {
+            intSec.forEach(element => {
+                possibilities.add(element);
+            });
+        }
+    }
+}
+
+for (const p of Array.from(possibilities)) {
+    if (check(...decode(p))) {
+        let [p_x, p_y] = decode(p);
+        console.log(p_x * 4000000 + p_y);
+        break;
+    }
+}
 

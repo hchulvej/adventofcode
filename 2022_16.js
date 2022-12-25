@@ -66,4 +66,23 @@ for (let k = 0; k < numV; k++) {
     }
 }
 
-console.log(next);
+/*
+    State:
+    - my current position (0 - numV - 1)
+    - the set of opened valves (0 - number of valves with positive flow)
+    - the time remaining (0 - 30)
+    - the number of other players (0 - 1)
+*/
+const encodeState = (myPos, openedValves, timeRemaining, otherPlayers) => {
+    return `${myPos}.${openedValves}.${timeRemaining}.${otherPlayers}`;
+}
+
+let maxScore = new Map(); // Memoization
+
+const solve = (myPos, openedValves, timeRemaining, otherPlayers) => {
+    if (maxScore.has(encodeState(myPos, openedValves, timeRemaining, otherPlayers))) {
+        return maxScore.get(encodeState(myPos, openedValves, timeRemaining, otherPlayers));
+    }
+
+    
+}

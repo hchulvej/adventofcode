@@ -25,7 +25,7 @@ const parseLine = (line) => {
 let rawValves = [];
 puzzleData.forEach(line => rawValves.push(parseLine(line)));
 
-console.log('Parsing done!');
+// console.log(rawValves);
 
 /*
     Shortest path between all vertices: Floyd–Warshall
@@ -42,8 +42,12 @@ const decode = (str) => {
 let numV = rawValves.length;
 let dist = {};
 let next = {};
+let valvesWithFlow = [];
 
 for (let i = 0; i < numV; i++) {
+    if (rawValves[i][1] > 0) {
+        valvesWithFlow.push(i);
+    }
     for (let j = 0; j < numV; j++) {
         if (i === j) {
             dist[encode(i, j)] = 0;
@@ -70,4 +74,9 @@ for (let k = 0; k < numV; k++) {
     }
 }
 
-console.log('Done!')
+/*
+    All possible ways through (ignoring 0-valves)
+*/
+let possiblePaths = new Combinatorics.Permutation(valvesWithFlow);
+
+console.log(possiblePaths);

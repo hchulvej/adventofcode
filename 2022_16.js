@@ -1,4 +1,6 @@
 const fs = require('fs');
+const Combinatorics = require('js-combinatorics')
+
 
 const openFile = (filename) => {
     let data = fs.readFileSync(filename, {encoding: 'utf-8'});
@@ -22,6 +24,8 @@ const parseLine = (line) => {
 
 let rawValves = [];
 puzzleData.forEach(line => rawValves.push(parseLine(line)));
+
+console.log('Parsing done!');
 
 /*
     Shortest path between all vertices: Floyd–Warshall
@@ -66,23 +70,4 @@ for (let k = 0; k < numV; k++) {
     }
 }
 
-/*
-    State:
-    - my current position (0 - numV - 1)
-    - the set of opened valves (0 - number of valves with positive flow)
-    - the time remaining (0 - 30)
-    - the number of other players (0 - 1)
-*/
-const encodeState = (myPos, openedValves, timeRemaining, otherPlayers) => {
-    return `${myPos}.${openedValves}.${timeRemaining}.${otherPlayers}`;
-}
-
-let maxScore = new Map(); // Memoization
-
-const solve = (myPos, openedValves, timeRemaining, otherPlayers) => {
-    if (maxScore.has(encodeState(myPos, openedValves, timeRemaining, otherPlayers))) {
-        return maxScore.get(encodeState(myPos, openedValves, timeRemaining, otherPlayers));
-    }
-
-    
-}
+console.log('Done!')

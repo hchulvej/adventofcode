@@ -32,8 +32,8 @@ puzzleData.forEach(line => rawValves.push(parseLine(line)));
 
     https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm
 */
-const encode = (x,y) => {
-    return `${x}.${y}`;
+const encode = (arr) => {
+    return arr.join('.');
 }
 const decode = (str) => {
     return str.split('.').map(t => Number(t));
@@ -50,15 +50,15 @@ for (let i = 0; i < numV; i++) {
     }
     for (let j = 0; j < numV; j++) {
         if (i === j) {
-            dist[encode(i, j)] = 0;
-            next[encode(i, j)] = i;
+            dist[encode([i, j])] = 0;
+            next[encode([i, j])] = i;
         }
         if (rawValves[i][2].includes(rawValves[j][0])) {
-            dist[encode(i, j)] = 1;
-            next[encode(i, j)] = j;
+            dist[encode([i, j])] = 1;
+            next[encode([i, j])] = j;
         } else if (i !== j) {
-            dist[encode(i, j)] = Number.POSITIVE_INFINITY;
-            next[encode(i, j)] = null;
+            dist[encode([i, j])] = Number.POSITIVE_INFINITY;
+            next[encode([i, j])] = null;
         }
     }
 }
@@ -66,9 +66,9 @@ for (let i = 0; i < numV; i++) {
 for (let k = 0; k < numV; k++) {
     for (let i = 0; i < numV; i++) {
         for (let j = 0; j < numV; j++) {
-            if (dist[encode(i, j)] > dist[encode(i, k)] + dist[encode(k, j)]) {
-                dist[encode(i, j)] = dist[encode(i, k)] + dist[encode(k, j)];
-                next[encode(i, j)] = next[encode(i, k)];
+            if (dist[encode([i, j])] > dist[encode([i, k])] + dist[encode([k, j])]) {
+                dist[encode([i, j])] = dist[encode([i, k])] + dist[encode([k, j])];
+                next[encode([i, j])] = next[encode([i, k])];
             }
         }
     }
@@ -79,4 +79,46 @@ for (let k = 0; k < numV; k++) {
 */
 let possiblePaths = new Combinatorics.Permutation(valvesWithFlow);
 
-console.log(possiblePaths);
+const startTime = 30;
+let memoScore = {'0': [0, startTime]};
+
+
+// Set up the first valve
+// Assumes that a possitive valve will always be opened (possibly wrong?)
+for (let i = 1; i < rawValves.length; i++) {
+    let timeSpent = dist['0.' + i.toString()] + rawValves[i][1] > 0 ? 1 : 0;
+    memoScore['0.' + i.toString()] = [rawValves[i][1] * (startTime - timeSpent), startTime - timeSpent];
+}
+
+const processPath = (path) => {
+    let existingPath = '0.' + path.shift().toString();
+    while (existingPath in memoScore) {
+        existingPath += path.shift().toString();
+    }
+    if (path.length === 0) {
+        return memoScore[existingPath];
+    }
+    while (path.length > 0) {
+        let currentScore = memoScore[existingPath][0];
+        let timeRemaining = memoScore[existingPath][1];
+        let nextDestination = path.shift().toString();
+        let timeNeeded = dist[existingPath.slice(-1) + '.' + nextDestination];
+        if (rawValves[Number(nextDestination)][1]> 0) {
+            timeNeeded++;
+        }
+        if (timeRemaining < timeNeeded) {
+            memoScore[encode(path)] = [currentScore, 0];
+        } else {
+            currentScore += rawValves[Number(nextDestination)][1] * (timeRemaining - timeNeeded);
+            memoScore[existingPath + nextDestination] = [currentScore, timeRemaining - timeNeeded];
+        }  
+    }
+    return memoScore[path];
+}
+
+
+let maxScore = 0;
+
+
+
+console.log(processPath([2,4,5,6]));

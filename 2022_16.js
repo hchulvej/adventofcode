@@ -25,7 +25,14 @@ const parseLine = (line) => {
 let rawValves = [];
 puzzleData.forEach(line => rawValves.push(parseLine(line)));
 
-// console.log(rawValves);
+//console.log(rawValves);
+
+let vi = {};
+for (const valve of rawValves) {
+    vi[valve[0]] = rawValves.indexOf(valve);
+}
+
+//console.log(vi);
 
 /*
     Shortest path between all vertices: Floyd–Warshall
@@ -75,50 +82,52 @@ for (let k = 0; k < numV; k++) {
 }
 
 /*
-    All possible ways through (ignoring 0-valves)
+    Trying to follow Jonathan Paulsen's method
 */
-let possiblePaths = new Combinatorics.Permutation(valvesWithFlow);
-
-const startTime = 30;
-let memoScore = {'0': [0, startTime]};
-
-
-// Set up the first valve
-// Assumes that a possitive valve will always be opened (possibly wrong?)
-for (let i = 1; i < rawValves.length; i++) {
-    let timeSpent = dist['0.' + i.toString()] + rawValves[i][1] > 0 ? 1 : 0;
-    memoScore['0.' + i.toString()] = [rawValves[i][1] * (startTime - timeSpent), startTime - timeSpent];
+const setToKey = (S) => {
+    if (S.size === 0) {
+        return 0;
+    }
+    let num = 0;
+    S.forEach(x => num += 2 ** x);
+    return num;
 }
+let DP = new Array();
 
-const processPath = (path) => {
-    let existingPath = '0.' + path.shift().toString();
-    while (existingPath in memoScore) {
-        existingPath += path.shift().toString();
-    }
-    if (path.length === 0) {
-        return memoScore[existingPath];
-    }
-    while (path.length > 0) {
-        let currentScore = memoScore[existingPath][0];
-        let timeRemaining = memoScore[existingPath][1];
-        let nextDestination = path.shift().toString();
-        let timeNeeded = dist[existingPath.slice(-1) + '.' + nextDestination];
-        if (rawValves[Number(nextDestination)][1]> 0) {
-            timeNeeded++;
-        }
-        if (timeRemaining < timeNeeded) {
-            memoScore[encode(path)] = [currentScore, 0];
+const score = (position, openValves, timeLeft, otherPlayers) => {
+
+    if (timeLeft === 0) {
+        if (otherPlayers === 1) {
+            //console.log('here');
+            return score(0, openValves, 26, 0);
         } else {
-            currentScore += rawValves[Number(nextDestination)][1] * (timeRemaining - timeNeeded);
-            memoScore[existingPath + nextDestination] = [currentScore, timeRemaining - timeNeeded];
-        }  
+            return 0;
+        }
     }
-    return memoScore[path];
+
+    let key = setToKey(openValves).toString() +  (valvesWithFlow.length * 100000 + position * 10000000 + timeLeft * 1000000000 + otherPlayers).toString();
+    
+    if (DP[key] > 0) {
+        return DP[key];
+    }
+
+    let ans = 0;
+    let alreadyOpen = openValves.has(position);
+
+    if (!alreadyOpen && valvesWithFlow.includes(position)) {
+        let newOpenValves = new Set([position]);
+        openValves.forEach(x => newOpenValves.add(x));
+        ans = Math.max(ans, rawValves[position][1] * (timeLeft - 1) + score(position, newOpenValves, timeLeft - 1, otherPlayers));
+    }
+    for (const v of rawValves[position][2].map(t => vi[t])) {
+        ans = Math.max(ans, score(v, openValves, timeLeft - 1, otherPlayers));
+    }
+
+    DP[key] = ans;
+
+    
+    return ans;
 }
 
-
-let maxScore = 0;
-
-
-
-console.log(processPath([2,4,5,6]));
+console.log(score(0, new Set(), 30, 0));
+console.log(score(0, new Set(), 26, 1));

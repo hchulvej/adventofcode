@@ -73,8 +73,7 @@ const score = (position, valves, openValves, timeLeft) => {
     }
 
     DP.set(key, ans);
-    currOpen = openValves;
-
+    
     return ans;
 }
 

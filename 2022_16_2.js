@@ -45,7 +45,7 @@ for (const v of rawValves) {
 
 const flowingValves = indexedValves.filter(v => v[1] > 0).map(v => v[0]);
 
-let DP = new Map();
+let DP = {};
 
 const score = (position, valves, openValves, timeLeft) => {
 
@@ -53,30 +53,31 @@ const score = (position, valves, openValves, timeLeft) => {
         return 0;
     }
 
-    let key = hash([position, valves, openValves, timeLeft]);
+    let key = `p${position}.v${hash(valves)}.o${openValves}.t${timeLeft}`;
 
-    if (DP.has(key)) {
-        return DP.get(key);
+    if (key in DP) {
+        return DP[key];
     }
 
     let ans = 0;
-    let alreadyOpen = openValves.has(position);
+    let alreadyOpen = openValves & (1 << position);
 
 
-    if (!alreadyOpen && flowingValves.includes(position)) {
-        let newOpenValves = new Set([position]);
-        openValves.forEach(x => newOpenValves.add(x));
-        ans = Math.max(ans, indexedValves[position][1] * (timeLeft - 1) + score(position, valves, newOpenValves, timeLeft - 1));
+    if (!alreadyOpen) {
+        if (valves[position][1] > 0) {
+            let newOpenValves = openValves | (1 << position);
+            ans = Math.max(ans, valves[position][1] * (timeLeft - 1) + score(position, valves, newOpenValves, timeLeft - 1));
+        }
     }
     
-    for (const newPos of indexedValves[position][2].filter(x => valves.includes(x))) {
+    for (const newPos of valves[position][2]) {
         ans = Math.max(ans, score(newPos, valves, openValves, timeLeft - 1));
     }
 
-    DP.set(key, ans);
+    DP[key] = ans;
     
     return ans;
 }
 
-console.log(score(0, [...Array(indexedValves.length).keys()], new Set(), 30));
+console.log(score(0, indexedValves, 0, 30));
 

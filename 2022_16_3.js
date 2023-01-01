@@ -96,7 +96,7 @@ for (const ind of valveIndices) {
     }
 }
 
-//console.log(dist.get(0));
+console.log(dist.get(0));
 
 /*
     Part One
@@ -105,7 +105,7 @@ let cache = {};
 
 const solve = (timeLeft, position, openvalves) => {
 
-    let key = `${timeLeft}s.${position}.${openvalves}v`;
+    let key = `${timeLeft}s.${position}p.${openvalves}v`;
 
     if (key in cache) {
         return cache[key];
@@ -120,16 +120,15 @@ const solve = (timeLeft, position, openvalves) => {
         if (openvalves & openbit) {
             continue;
             // already open
-        } else {
-            remTime = timeLeft - 1 - dist.get(position).get(v);
-            if (remTime <= 0) {
-                continue;
-            } else {
-                maxval = Math.max(maxval, solve(remTime, v, openvalves | openbit) + remTime * rawValves[v][1]);
-            }
         }
+        remTime = timeLeft - 1 - dist.get(position).get(v);
+        if (remTime <= 0) {
+             continue;
+        } 
+        maxval = Math.max(maxval, solve(remTime, v, openvalves | openbit) + remTime * rawValves[v][1]);
+         }
 
-    }
+    
 
     cache[key] = maxval;
     return maxval;

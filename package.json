@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "js-combinatorics": "^2.1.1"
+    "js-combinatorics": "^2.1.1",
+    "object-hash": "^3.0.0"
   }
 }

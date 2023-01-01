@@ -1,4 +1,5 @@
 const fs = require('fs');
+const hash = require('object-hash');
 
 const openFile = (filename) => {
     let data = fs.readFileSync(filename, {encoding: 'utf-8'});
@@ -52,7 +53,7 @@ const score = (position, valves, openValves, timeLeft) => {
         return 0;
     }
 
-    let key = `p=${position}.${valves.join('v')}.${Array.from(openValves).join('o')}.${timeLeft}`;
+    let key = hash([position, valves, openValves, timeLeft]);
 
     if (DP.has(key)) {
         return DP.get(key);

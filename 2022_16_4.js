@@ -100,15 +100,27 @@ console.log(dfs(valves, 'AA', 30, [], valvesWithFlow));
 /*
     Part Two
 */
-let P = new jsc.PowerSet(valvesWithFlow);
+let memo = {};
+let P = [...new jsc.Combination(valvesWithFlow, 7)];
+for (const vs of P) {
+  memo[vs.join(".")] = dfs(valves, "AA", 26, [], vs);
+} 
 
-const complementary = (arr) => {
-    return valvesWithFlow.filter(x => !arr.includes(x));
+
+const disjoint = (l1, l2) => {
+    return !l1.some(x => l2.includes(x));
 }
 
-let newMax = 0;
-for (let s of P) {
-    newMax = Math.max(newMax, dfs(valves, 'AA', 26, [], s) + dfs(valves, 'AA', 26, [], complementary(s)));
+let elephantMax = 0;
+
+for (let i = 0; i < P.length; i++) {
+    for (let j = i + 1; j < P.length; j++) {
+        if (disjoint(P[i], P[j])) {
+            if (elephantMax < memo[P[i].join('.')] + memo[P[j].join('.')]) {
+                elephantMax = memo[P[i].join('.')] + memo[P[j].join('.')];
+            }
+        }
+    }
 }
 
-console.log(newMax);
+console.log(elephantMax);

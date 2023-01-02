@@ -97,7 +97,7 @@ for (let i = 0; i < 7; i++) {
     state.add(encode([i,0]));
 }
 
-while (numberOfRestingRocks < 2022) {
+while (numberOfRestingRocks < 10) {
     let jet = 0;
     let rock = new Rock (tick % 5, 2, highestY);
     if (tick % 2 === 0) {

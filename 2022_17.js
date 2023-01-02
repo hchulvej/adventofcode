@@ -89,44 +89,43 @@ class Rock {
 }
 
 let highestY = 0;
-let tick = 0;
-let numberOfRestingRocks = 0;
 let state = new Set();
 // add floor to state
 for (let i = 0; i < 7; i++) {
     state.add(encode([i,0]));
 }
 
-while (numberOfRestingRocks < 10) {
-    let jet = 0;
-    let rock = new Rock (tick % 5, 2, highestY);
-    if (tick % 2 === 0) {
-        let direction = puzzleData[jet % puzzleData.length];
-        if (direction === '<' && rock.getLeftLimit() > 0) {
-            rock.move(-1, 0);
-        }
-        if (direction === '>' && rock.getRightLimit() < 6) {
-            rock.move(1, 0);
-        }
-        jet++;
-    } else {
-        let newPos = new Set();
-        let oldPos = rock.getPositions();
-        oldPos.forEach(pos => newPos.add([pos[0], pos[1] - 1]));
-        let conflict = false;
-        newPos.forEach((pos) => {
-            if (state.has(encode(pos))) {
-                conflict = true;
+let jet = 0;
+
+const dropRock = (type) => {
+    let rock = new Rock(type, 2, highestY);
+    let falling = true;
+
+    while (falling) {
+        // Jet
+        if (puzzleData[jet] = '<') {
+            if (rock.getLeftLimit() > 0) {
+                rock.move(-1, 0);
             }
-        });
-        if (!conflict) {
-            rock.move(0, -1);
-        } else {
-            rock.land();
-            rock.getPositions().forEach(pos => state.add(encode(pos)));
-            numberOfRestingRocks++;
-            highestY = Math.max(...state.map(pos => pos.split('.').map(t => Number(t))[1]));
+            if ([...rock.getPositions()].map(encode).some(e => state.has(x))) {
+                rock.move(1, 0);
+            }
         }
+        if (puzzleData[jet] = '>') {
+            if (rock.getLeftLimit() < 6) {
+                rock.move(1, 0);
+            }
+            if ([...rock.getPositions()].map(encode).some(e => state.has(x))) {
+                rock.move(-1, 0);
+            }
+        }
+        // Fall
+        rock.move(0, -1);
+        if ([...rock.getPositions()].map(encode).some(e => state.has(x))) {
+            rock.move(0, 1);
+            falling = false;
+        }
+
     }
-    tick++;
+    [...rock.getPositions()].map(encode).forEach(e => state.add(e));
 }

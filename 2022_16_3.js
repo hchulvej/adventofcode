@@ -1,4 +1,5 @@
 const fs = require('fs');
+const hash = require('object-hash');
 
 const openFile = (filename) => {
     let data = fs.readFileSync(filename, {encoding: 'utf-8'});
@@ -94,4 +95,42 @@ for (const ind of valveIndices) {
         }
     }
 }
+
+//console.log(dist.get(0));
+
+/*
+    Part One
+*/
+const solve = (timeLeft, position, openvalves, cache = {}) => {
+
+    let key = `${timeLeft}s.${position}p.${openvalves}v`;
+
+    if (key in cache) {
+        return cache[key];
+    }
+
+    let maxval = 0;
+
+    let toValves = Array.from(dist.get(position).keys());
+    
+    for (const v of toValves) {
+        let openbit = 1 << v;
+        if (openvalves & openbit) {
+            continue;
+            // already open
+        }
+        remTime = timeLeft - 1 - dist.get(position).get(v);
+        if (remTime <= 0) {
+             continue;
+        } 
+        maxval = Math.max(maxval, solve(remTime, v, openvalves | openbit, cache) + remTime * rawValves[v][1]);
+         }
+
+    
+
+    cache[key] = maxval;
+    return maxval;
+}
+
+console.log(solve(30, 0, 0));
 

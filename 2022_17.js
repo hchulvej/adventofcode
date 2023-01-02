@@ -71,6 +71,10 @@ class Rock {
     }
 
     getPositions() {
-
+        let pos = new Set();
+        for (let i = 0; i < this.xvals.length; i++) {
+            pos.add(new Point(this.xvals[i], this.yvals[i]));
+        }
+        return pos;
     }
 }

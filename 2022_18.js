@@ -1,6 +1,4 @@
 const fs = require('fs');
-const jsc = require('js-combinatorics');
-
 
 const openFile = (filename) => {
     let data = fs.readFileSync(filename, {encoding: 'utf-8'});

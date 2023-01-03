@@ -7,7 +7,7 @@ const openFile = (filename) => {
     return data.split('\r\n');
 }
 
-const puzzleData = openFile('2022_17_small.txt');
+const puzzleData = openFile('2022_17.txt');
 
 /*
     Setting up the cave
@@ -85,6 +85,7 @@ class Rock {
 }
 
 let highestY = 0;
+let deltaHeight = [];
 let state = new Set();
 // add floor to state
 for (let i = 0; i < 7; i++) {
@@ -101,26 +102,34 @@ const dropRocks = (noOfRocks) => {
             return 1;
         }
     });
-   
-    for (let i = 0; i < noOfRocks; i++) {
-        let rock = new Rock(rocks[i % 5], 2, highestY);
-        let landed = 0;
-        for (const push of jets) {
-            if (landed < 2) {
-                rock.move(push, 0);
-                if (rock.getLeftLimit() < 0 || rock.getRightLimit() > 6 || [...rock.getPositions()].map(encode).some(x => state.has(x))) {
-                    rock.move(-push, 0);
-                }    
+
+    let count = 0;
+    let rockIndex = 0;
+    let rock = new Rock(rocks[rockIndex], 2, highestY);
+
+    while (count < noOfRocks) {
+
+        for (const jet of jets) {
+            rock.move(jet, 0);
+            if (rock.getLeftLimit() < 0 || rock.getRightLimit() > 6 || [...rock.getPositions()].map(encode).some(x => state.has(x))) {
+                rock.move(-jet, 0);
             }
-            
             rock.move(0, -1);
             if ([...rock.getPositions()].map(encode).some(x => state.has(x))) {
                 rock.move(0, 1);
-                landed++;
+                [...rock.getPositions()].map(encode).forEach(x => state.add(x));
+                let oldHigh = highestY;
+                highestY = Math.max(...[...state].map(getY));
+                deltaHeight.push(highestY, oldHigh);
+                count++;
+                rockIndex++
+                rock = new Rock(rocks[rockIndex % 5], 2, highestY);
+                if (count >= noOfRocks) {
+                    break;
+                }
             }
         }
-        [...rock.getPositions()].map(encode).forEach(x => state.add(x));
-        highestY = Math.max(...[...state].map(getY));
+
     }
 }    
     
@@ -142,8 +151,16 @@ const drawState = () => {
     }
 }
 
-dropRocks(3);
+dropRocks(4000);
 
-drawState();
+//drawState();
 
 console.log(highestY);
+
+let length = 9;
+
+for (let i = 0; i + length < deltaHeight.length; i++) {
+    if (deltaHeight.slice(i, i + length).join('.') === '1142.1142.1142.1142.1142.1142.1142.1142.1142') {
+        console.log(i);
+    }
+}

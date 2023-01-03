@@ -20,6 +20,7 @@ class Cube {
         this.x = coords[0];
         this.y = coords[1];
         this.z = coords[2];
+        this.neighbors = new Set();
     }
 
     getx() {
@@ -39,17 +40,29 @@ class Cube {
             || (Math.abs(this.y - other.gety()) === 1 && this.x === other.getx() && this.z === other.getz())
             || (Math.abs(this.z - other.getz()) === 1 && this.y === other.gety() && this.x === other.getx())
     }
+
+    addNeighbor(other) {
+        this.neighbors.add(other);
+    }
+
+    visibleArea() {
+        return 6 - this.neighbors.size;
+    }
 }
 
 let cubes = [];
 coordinates.forEach(c => cubes.push(new Cube(c)));
 
-let actualArea = 6 * cubes.length;
-
-for (const pair of new jsc.Combination(cubes, 2)) {
-    if (pair[0].isNeighbor(pair[1])) {
-        actualArea -= 2;
+for (let i = 0; i < cubes.length; i++) {
+    for (let j = i; j < cubes.length; j++) {
+        if (cubes[i].isNeighbor(cubes[j])) {
+            cubes[i].addNeighbor(cubes[j]);
+            cubes[j].addNeighbor(cubes[i]);
+        }
     }
 }
 
-console.log(actualArea);
+let area = 0;
+cubes.forEach(c => area += c.visibleArea());
+
+console.log(area);

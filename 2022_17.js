@@ -9,7 +9,6 @@ const openFile = (filename) => {
 
 const puzzleData = openFile('2022_17_small.txt');
 
-
 /*
     Setting up the cave
 
@@ -20,27 +19,33 @@ const puzzleData = openFile('2022_17_small.txt');
 const encode = (arr) => {
     return arr.join('.');
 }
+
+const getY = (str) => {
+    return Number(str.split('.')[1]);
+}
+
+
 class Rock {
     constructor(type, topLeftX, highestY) {
         this.resting = false;
         // Type: ####
         if (type === 0) {
             this.xvals = [topLeftX, topLeftX + 1, topLeftX + 2, topLeftX + 3];
-            this.yvals = [highestY + 3, highestY + 3, highestY + 3, highestY + 3];
+            this.yvals = [highestY + 4, highestY + 4, highestY + 4, highestY + 4];
         }
         // Type: .#.
         //       ###
         //       .#.
         if (type === 1) {
             this.xvals = [topLeftX + 1, topLeftX, topLeftX + 1, topLeftX + 2, topLeftX + 1];
-            this.yvals = [highestY + 5, highestY + 4, highestY + 4, highestY + 4, highestY + 3];
+            this.yvals = [highestY + 6, highestY + 5, highestY + 5, highestY + 5, highestY + 4];
         }
         // Type: ..#
         //       ..#
         //       ###
         if (type === 2) {
             this.xvals = [topLeftX + 2, topLeftX + 2, topLeftX, topLeftX + 1, topLeftX + 2];
-            this.yvals = [highestY + 5, highestY + 4, highestY + 3, highestY + 3, highestY + 3];
+            this.yvals = [highestY + 6, highestY + 5, highestY + 4, highestY + 4, highestY + 4];
         }
         // Type: #
         //       #
@@ -48,13 +53,13 @@ class Rock {
         //       #
         if (type === 3) {
             this.xvals = [topLeftX, topLeftX, topLeftX, topLeftX];
-            this.yvals = [highestY + 6, highestY + 5, highestY + 4, highestY + 3];
+            this.yvals = [highestY + 7, highestY + 6, highestY + 5, highestY + 4];
         }
         // Type: ##
         //       ##
         if (type === 4) {
             this.xvals = [topLeftX, topLeftX + 1, topLeftX, topLeftX + 1];
-            this.yvals = [highestY + 4, highestY + 4, highestY + 3, highestY + 3];
+            this.yvals = [highestY + 5, highestY + 5, highestY + 4, highestY + 4];
         }
     }
 
@@ -99,33 +104,27 @@ let jet = 0;
 
 const dropRock = (type) => {
     let rock = new Rock(type, 2, highestY);
-    let falling = true;
-
-    while (falling) {
-        // Jet
-        if (puzzleData[jet] = '<') {
-            if (rock.getLeftLimit() > 0) {
-                rock.move(-1, 0);
-            }
-            if ([...rock.getPositions()].map(encode).some(e => state.has(x))) {
-                rock.move(1, 0);
-            }
-        }
-        if (puzzleData[jet] = '>') {
-            if (rock.getLeftLimit() < 6) {
-                rock.move(1, 0);
-            }
-            if ([...rock.getPositions()].map(encode).some(e => state.has(x))) {
-                rock.move(-1, 0);
-            }
-        }
-        // Fall
-        rock.move(0, -1);
-        if ([...rock.getPositions()].map(encode).some(e => state.has(x))) {
-            rock.move(0, 1);
-            falling = false;
-        }
-
-    }
+    console.log(rock.getLeftLimit(), rock.getRightLimit());
+    
     [...rock.getPositions()].map(encode).forEach(e => state.add(e));
+    
+    highestY = Math.max(...[...state].map(getY));
 }
+
+const drawState = () => {
+    for (let y = highestY; y >= 0; y--) {
+        let line = '';
+        for (let x = 0; x < 7; x++) {
+            if (state.has(encode([x,y]))) {
+                line += '#';
+            } else {
+                line += '.';
+            }
+        }
+        console.log(line);
+    }
+}
+
+dropRock(4);
+
+drawState();

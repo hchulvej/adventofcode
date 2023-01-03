@@ -27,7 +27,6 @@ const getY = (str) => {
 
 class Rock {
     constructor(type, topLeftX, highestY) {
-        this.resting = false;
         // Type: ####
         if (type === 0) {
             this.xvals = [topLeftX, topLeftX + 1, topLeftX + 2, topLeftX + 3];
@@ -76,14 +75,6 @@ class Rock {
         this.yvals = this.yvals.map(y => y + v_y);
     }
 
-    isResting() {
-        return this.resting;
-    }
-
-    land() {
-        this.resting = true;
-    }
-
     getRightLimit() {
         return Math.max(...this.xvals);
     }
@@ -100,16 +91,42 @@ for (let i = 0; i < 7; i++) {
     state.add(encode([i,0]));
 }
 
-let jet = 0;
+const dropRocks = (noOfRocks) => {
+    let rocks = [0, 1, 2, 3, 4];
+    let jets = puzzleData[0].split('').map(x => {
+        if (x === '<') {
+            return -1;
+        }
+        if (x === '>') {
+            return 1;
+        }
+    });
+   
+    for (let i = 0; i < noOfRocks; i++) {
+        let rock = new Rock(rocks[i % 5], 2, highestY);
+        let landed = 0;
+        for (const push of jets) {
+            if (landed < 2) {
+                rock.move(push, 0);
+                if (rock.getLeftLimit() < 0 || rock.getRightLimit() > 6 || [...rock.getPositions()].map(encode).some(x => state.has(x))) {
+                    rock.move(-push, 0);
+                }    
+            }
+            
+            rock.move(0, -1);
+            if ([...rock.getPositions()].map(encode).some(x => state.has(x))) {
+                rock.move(0, 1);
+                landed++;
+            }
+        }
+        [...rock.getPositions()].map(encode).forEach(x => state.add(x));
+        highestY = Math.max(...[...state].map(getY));
+    }
+}    
+    
+    
 
-const dropRock = (type) => {
-    let rock = new Rock(type, 2, highestY);
-    console.log(rock.getLeftLimit(), rock.getRightLimit());
-    
-    [...rock.getPositions()].map(encode).forEach(e => state.add(e));
-    
-    highestY = Math.max(...[...state].map(getY));
-}
+
 
 const drawState = () => {
     for (let y = highestY; y >= 0; y--) {
@@ -125,6 +142,8 @@ const drawState = () => {
     }
 }
 
-dropRock(4);
+dropRocks(3);
 
 drawState();
+
+console.log(highestY);

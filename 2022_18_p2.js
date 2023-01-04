@@ -12,33 +12,61 @@ const coordinates = puzzleData.map(s => s.split(',').map(t => Number(t)));
 
 // x in [0;18], y in [1;18], z in [0;19]
 
-let outerArea = 0;
+/*
+    Different strategy: model the six faces as the midpoints of the cube
 
-// XY
-for (let x = 0; x < 19; x++) {
-    for (let y = 1; y < 19; y++) {
-        if (coordinates.filter(c => c[0] === x && c[1] === y).length > 0) {
-            outerArea += 2;
+    The 1-1-1 cube has faces
+        px: [1, 1/2, 1/2]
+        nx: [0, 1/2, 1/2]
+        py: [1/2, 1, 1/2]
+        ny: [1/2, 0, 1/2]
+        pz: [1/2, 1/2, 1]
+        nz: [1/2, 1/2, 0]
+
+    All other faces are vector translations of these faces
+*/
+const encode = (coords) => {
+    return `(${coords[0]}, ${coords[1]}, ${coords[2]})`;
+}
+
+const decode = (str) => {
+    str = str.slice(1, str.length - 1);
+    return str.split(',').map(t => Number(t));
+}
+
+const baseCube = new Set();
+for (let c = 0; c < 2; c++) {
+    baseCube.add(encode([c, 0.5, 0.5]));
+    baseCube.add(encode([0.5, c, 0.5]));
+    baseCube.add(encode([0.5, 0.5, c]));
+}
+
+const createCube = (coords) => {
+    let base = Array.from(baseCube).map(decode);
+    let [x, y, z] = [...coords];
+    return new Set(base.map(c => [c[0] + x - 1, c[1] + y - 1, c[2] + z - 1]).map(encode));
+}
+
+let cubes = [];
+let faces = new Set();
+for (const coords of coordinates) {
+    let cube = createCube(coords);
+    cubes.push(cube);
+    cube.forEach(f => faces.add(f));
+}
+
+/*
+    A face is covered if another cube shares the face
+*/
+let uncovered = cubes.length * 6; // No faces covered
+for (let i = 0; i < cubes.length; i++) {
+    for (let j = i + 1; j < cubes.length; j++) {
+        if (Array.from(cubes[i]).filter(x => cubes[j].has(x)).length > 0) {
+            uncovered -= 2;
         }
     }
 }
 
-// XZ
-for (let x = 0; x < 19; x++) {
-    for (let z = 0; z < 20; z++) {
-        if (coordinates.filter(c => c[0] === x && c[2] === z).length > 0) {
-            outerArea += 2;
-        }
-    }
-}
+console.log(uncovered);
+console.log(faces.size * 2 - 6 * cubes.length);
 
-// YZ
-for (let y = 1; y < 19; y++) {
-    for (let z = 0; z < 20; z++) {
-        if (coordinates.filter(c => c[1] === y && c[2] === z).length > 0) {
-            outerArea += 2;
-        }
-    }
-}
-
-console.log(outerArea);

@@ -70,3 +70,62 @@ for (let i = 0; i < cubes.length; i++) {
 console.log(uncovered);
 console.log(faces.size * 2 - 6 * cubes.length);
 
+/*
+    We want to find the surface air pockets by slicing
+*/
+const faceArray = Array.from(faces).map(f => decode(f));
+
+let surfaceAir = [];
+
+// XY-plane (Z var)
+for (x = -1; x < 21; x++) {
+    for (y = -1; y < 21; y++) {
+        let minZ = Number.POSITIVE_INFINITY;
+        let maxZ = Number.NEGATIVE_INFINITY;
+        const slice = faceArray.filter(arr => arr[0] === x && arr[1] === y);
+        if (slice.length === 0) {
+            continue;
+        } else {
+            minZ = Math.min(minZ, ...slice.map(arr => arr[2]));
+            maxZ = Math.max(maxZ, ...slice.map(arr => arr[2]));
+            surfaceAir.push(encode([x, y, minZ]));
+            surfaceAir.push(encode([x, y, maxZ]));
+        }
+    }
+}
+
+// XZ-plane (Y var)
+for (x = -1; x < 21; x++) {
+    for (z = -1; z < 21; z++) {
+        let minY = Number.POSITIVE_INFINITY;
+        let maxY = Number.NEGATIVE_INFINITY;
+        const slice = faceArray.filter(arr => arr[0] === x && arr[2] === z);
+        if (slice.length === 0) {
+            continue;
+        } else {
+            minY = Math.min(minY, ...slice.map(arr => arr[1]));
+            maxY = Math.max(maxY, ...slice.map(arr => arr[1]));
+            surfaceAir.push(encode([x, minY, z]));
+            surfaceAir.push(encode([x, maxY, z]));
+        }
+    }
+}
+
+// YZ-plane (X var)
+for (y = -1; y < 21; y++) {
+    for (z = -1; z < 21; z++) {
+        let minX = Number.POSITIVE_INFINITY;
+        let maxX = Number.NEGATIVE_INFINITY;
+        const slice = faceArray.filter(arr => arr[1] === y && arr[2] === z);
+        if (slice.length === 0) {
+            continue;
+        } else {
+            minY = Math.min(minX, ...slice.map(arr => arr[0]));
+            maxY = Math.max(maxX, ...slice.map(arr => arr[0]));
+            surfaceAir.push(encode([minX, y, z]));
+            surfaceAir.push(encode([maxX, y, z]));
+        }
+    }
+}
+
+console.log(faceArray);

@@ -71,61 +71,41 @@ console.log(uncovered);
 console.log(faces.size * 2 - 6 * cubes.length);
 
 /*
-    We want to find the surface air pockets by slicing
+    We want to find the trapped air pockets.
 */
-const faceArray = Array.from(faces).map(f => decode(f));
 
-let surfaceAir = [];
+// Boundaries
+// minX, maxX, minY, maxY, minZ, maxZ
+let boundaries = [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
+faces.forEach(f => {
+    let [x, y, z] = decode(f);
+    boundaries[0] = Math.min(boundaries[0], x);
+    boundaries[1] = Math.max(boundaries[1], x);
+    boundaries[2] = Math.min(boundaries[2], y);
+    boundaries[3] = Math.max(boundaries[3], y);
+    boundaries[4] = Math.min(boundaries[4], z);
+    boundaries[5] = Math.max(boundaries[5], z);
+    return
+});
 
-// XY-plane (Z var)
-for (x = -1; x < 21; x++) {
-    for (y = -1; y < 21; y++) {
-        let minZ = Number.POSITIVE_INFINITY;
-        let maxZ = Number.NEGATIVE_INFINITY;
-        const slice = faceArray.filter(arr => arr[0] === x && arr[1] === y);
-        if (slice.length === 0) {
-            continue;
-        } else {
-            minZ = Math.min(minZ, ...slice.map(arr => arr[2]));
-            maxZ = Math.max(maxZ, ...slice.map(arr => arr[2]));
-            surfaceAir.push(encode([x, y, minZ]));
-            surfaceAir.push(encode([x, y, maxZ]));
+const outOfBounds = (face) => {
+    let [x, y, z] = decode(face);
+    if (boundaries[0] > x
+        || boundaries[1] < x
+        || boundaries[2] > y
+        || boundaries[3] < y
+        || boundaries[4] > z
+        || boundaries[5] < z) {
+            return true;
         }
-    }
+    return false;
 }
 
-// XZ-plane (Y var)
-for (x = -1; x < 21; x++) {
-    for (z = -1; z < 21; z++) {
-        let minY = Number.POSITIVE_INFINITY;
-        let maxY = Number.NEGATIVE_INFINITY;
-        const slice = faceArray.filter(arr => arr[0] === x && arr[2] === z);
-        if (slice.length === 0) {
-            continue;
-        } else {
-            minY = Math.min(minY, ...slice.map(arr => arr[1]));
-            maxY = Math.max(maxY, ...slice.map(arr => arr[1]));
-            surfaceAir.push(encode([x, minY, z]));
-            surfaceAir.push(encode([x, maxY, z]));
+let connectedFaces = (face) => {
+    let connected = new Set();
+    cubes.forEach(c => {
+        if (c.has(face)) {
+            c.forEach(f => connected.add(f));
         }
-    }
+    })
 }
-
-// YZ-plane (X var)
-for (y = -1; y < 21; y++) {
-    for (z = -1; z < 21; z++) {
-        let minX = Number.POSITIVE_INFINITY;
-        let maxX = Number.NEGATIVE_INFINITY;
-        const slice = faceArray.filter(arr => arr[1] === y && arr[2] === z);
-        if (slice.length === 0) {
-            continue;
-        } else {
-            minY = Math.min(minX, ...slice.map(arr => arr[0]));
-            maxY = Math.max(maxX, ...slice.map(arr => arr[0]));
-            surfaceAir.push(encode([minX, y, z]));
-            surfaceAir.push(encode([maxX, y, z]));
-        }
-    }
-}
-
-console.log(faceArray);

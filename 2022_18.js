@@ -135,18 +135,30 @@ const bfs = (x, y, z) => {
     let cube = newCube([x, y, z]);
     let temp = new Set();
 
-    if (outOfBounds(cube)) {
-        return true;
-    }
-
     let queue = [cube];
 
-    while (queue) {
+    while (queue.length > 0) {
         let qb = queue.pop();
         qb.getNeighbors().forEach(c => queue.unshift(c));
-        if (temp.has(qb.encode()) || lava.has(qb.encode())) {
+        if (tested.has(qb.encode()) || lava.has(qb.encode()) || connectedOut.has(qb.encode())) {
             continue;
         }
         temp.add(qb.encode());
+        tested.add(qb.encode());
+    }
+
+    if (outOfBounds(cube)) {
+        temp.forEach(enc => connectedOut.add(connectedOut));
+        return true;
     }
 }
+
+for (let x = boundaries[0] - 1; x <= boundaries[1] + 1; x++) {
+    for (let y = boundaries[2] - 1; y <= boundaries[3] + 1; y++) {
+        for (let z = boundaries[4] - 1; z <= boundaries[5] + 1; z++) {
+            bfs(x, y, z);
+        }
+    }
+}
+
+console.log((connectedOut.size));

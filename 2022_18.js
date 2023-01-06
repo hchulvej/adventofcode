@@ -54,6 +54,10 @@ class Cube {
     equals(other) {
         return this.x === other.getx() && this.y === other.gety() && this.z === other.getz();
     }
+
+    encode() {
+        return `(${this.x}, ${this.y}. ${this.z})`;
+    }
 }
 
 
@@ -120,3 +124,29 @@ const newCube = (coords) => {
     return cube;
 }
 
+let lava = new Set();
+cubes.forEach(c => lava.add(c.encode()));
+let tested = new Set();
+let connectedOut = new Set();
+let trapped = new Set();
+
+const bfs = (x, y, z) => {
+
+    let cube = newCube([x, y, z]);
+    let temp = new Set();
+
+    if (outOfBounds(cube)) {
+        return true;
+    }
+
+    let queue = [cube];
+
+    while (queue) {
+        let qb = queue.pop();
+        qb.getNeighbors().forEach(c => queue.unshift(c));
+        if (temp.has(qb.encode()) || lava.has(qb.encode())) {
+            continue;
+        }
+        temp.add(qb.encode());
+    }
+}

@@ -120,7 +120,7 @@ const dropRocks = (noOfRocks) => {
                 [...rock.getPositions()].map(encode).forEach(x => state.add(x));
                 let oldHigh = highestY;
                 highestY = Math.max(...[...state].map(getY));
-                deltaHeight.push(highestY, oldHigh);
+                deltaHeight.push(highestY - oldHigh);
                 count++;
                 rockIndex++
                 rock = new Rock(rocks[rockIndex % 5], 2, highestY);
@@ -151,16 +151,6 @@ const drawState = () => {
     }
 }
 
-dropRocks(4000);
-
-//drawState();
+dropRocks(2022);
 
 console.log(highestY);
-
-let length = 9;
-
-for (let i = 0; i + length < deltaHeight.length; i++) {
-    if (deltaHeight.slice(i, i + length).join('.') === '1142.1142.1142.1142.1142.1142.1142.1142.1142') {
-        console.log(i);
-    }
-}

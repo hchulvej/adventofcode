@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from functools import cache
+from collections import deque
 
 """
     Load and parse data
@@ -13,133 +13,109 @@ with open('./2022_19.txt', "r", encoding="utf-8") as file:
 
 """
     Part One
-"""
-
-def blueprint(t) -> dict:
-    return {'no': t[0], 'ore_robot_price': [t[1], 0, 0], 'clay_robot_price': [t[2], 0, 0], 'obsidian_robot_price': [t[3], t[4], 0], 'geode_robot_price': [t[5], 0, t[6]]}
-
-@dataclass(unsafe_hash=True)
-class State:
-    time_left: int
-    ore_robots: int
-    clay_robots: int
-    obsidian_robots: int
-    geode_robots: int
-    ore_deposit: int
-    clay_deposit: int
-    obsidian_deposit: int
-    geodes_opened: int
     
-    def get_state(self):
-        return dict(zip(['time_left', 'ore_robots', 'clay_robots', 'obsidian_robots', 'geode_robots', 'ore_deposit', 'clay_deposit', 'obsidian_deposit', 'geodes_opened'], [self.time_left, self.ore_robots, self.clay_robots, self.obsidian_robots, self.geode_robots, self.ore_deposit, self.clay_deposit, self.obsidian_deposit, self.geodes_opened]))
-
-    def get_signature(self):
-        return ".".join([str(e) for e in [self.time_left, self.ore_robots, self.clay_robots, self.obsidian_robots, self.geode_robots, self.ore_deposit, self.clay_deposit, self.obsidian_deposit, self.geodes_opened]])
-
-# Hint from hyper-neutrino
-def max_spending(t: tuple) -> tuple:
-    bp = blueprint(t)
-    keys = ['ore_robot_price', 'clay_robot_price', 'obsidian_robot_price', 'geode_robot_price']
-    res = []
-    for i in range(3):
-        res.append(max([bp[key][i] for key in keys]))
+    data: (1, 4, 2, 3, 14, 2, 7)
+    - blueprint number 0
+    - ore cost of ore robot 1
+    - ore cost of clay robot 2
+    - ore cost of obsidian robot 3
+    - clay cost of obsidian robot 4
+    - ore cost of geode robot 5
+    - obsidian cost of geode robot 6
+    
+"""
+# You can at most build one robot per minute,
+# so there is a cap on possible spending
+# This also means that there is no need to build more
+# robots of each type than the max spending, since
+# each robot mines 1 ressource per minute
+def max_spending(t: tuple) -> list[int]:
+    res = list([0, 0, 0]) # ore, clay, obsidian
+    res[0] = max(t[1], t[2], t[3], t[5])
+    res[1] = t[4]
+    res[2] = t[6]
     return res
 
-def move_on(state: State, bp: tuple) -> State:
-    ms = max_spending(bp)
-    old_state = state.get_state()
-    old_state['time_left'] -= 1
-    old_state['ore_deposit'] = min(old_state['ore_deposit'] + old_state['ore_robots'], ms[0] * old_state['time_left'])
-    old_state['clay_deposit'] = min(old_state['clay_deposit'] + old_state['clay_robots'], ms[1] * old_state['time_left'])
-    old_state['obsidian_deposit'] = min(old_state['obsidian_deposit'] + old_state['obsidian_robots'], ms[2] * old_state['time_left'])
-    old_state['geodes_opened'] += old_state['geode_robots']
-    return State(*old_state.values())
-    
-def afford_robot(state: State, type: str, bp: tuple) -> bool:
-    current_state = state.get_state()
-    if type == 'ore':
-        return all([current_state['ore_deposit'] >= blueprint(bp)['ore_robot_price'][0], current_state['clay_deposit'] >= blueprint(bp)['ore_robot_price'][1], current_state['obsidian_deposit'] >= blueprint(bp)['ore_robot_price'][2]])
-    if type == 'clay':
-        return all([current_state['ore_deposit'] >= blueprint(bp)['clay_robot_price'][0], current_state['clay_deposit'] >= blueprint(bp)['clay_robot_price'][1], current_state['obsidian_deposit'] >= blueprint(bp)['clay_robot_price'][2]])
-    if type == 'obsidian':
-        return all([current_state['ore_deposit'] >= blueprint(bp)['obsidian_robot_price'][0], current_state['clay_deposit'] >= blueprint(bp)['obsidian_robot_price'][1], current_state['obsidian_deposit'] >= blueprint(bp)['obsidian_robot_price'][2]])
-    if type == 'geode':
-        return all([current_state['ore_deposit'] >= blueprint(bp)['geode_robot_price'][0], current_state['clay_deposit'] >= blueprint(bp)['geode_robot_price'][1], current_state['obsidian_deposit'] >= blueprint(bp)['geode_robot_price'][2]])           
-
-def buy_robot(state: State, type: str, bp: tuple) -> State:
-    old_state = state.get_state()
-    if type == 'ore':
-        old_state['ore_robots'] += 1
-        old_state['ore_deposit'] -= blueprint(bp)['ore_robot_price'][0] + 1 #because of move_on
-        old_state['clay_deposit'] -= blueprint(bp)['ore_robot_price'][1]
-        old_state['obsidian_deposit'] -= blueprint(bp)['ore_robot_price'][2]
-        return State(*old_state.values())
-    if type == 'clay':
-        old_state['clay_robots'] += 1
-        old_state['ore_deposit'] -= blueprint(bp)['clay_robot_price'][0]
-        old_state['clay_deposit'] -= blueprint(bp)['clay_robot_price'][1] + 1 #because of move_on
-        old_state['obsidian_deposit'] -= blueprint(bp)['clay_robot_price'][2]
-        return State(*old_state.values())
-    if type == 'obsidian':
-        old_state['obsidian_robots'] += 1
-        old_state['ore_deposit'] -= blueprint(bp)['obsidian_robot_price'][0]
-        old_state['clay_deposit'] -= blueprint(bp)['obsidian_robot_price'][1]
-        old_state['obsidian_deposit'] -= blueprint(bp)['obsidian_robot_price'][2] + 1 #because of move_on
-        return State(*old_state.values())
-    if type == 'geode':
-        old_state['geode_robots'] += 1
-        old_state['ore_deposit'] -= blueprint(bp)['geode_robot_price'][0]
-        old_state['clay_deposit'] -= blueprint(bp)['geode_robot_price'][1]
-        old_state['obsidian_deposit'] -= blueprint(bp)['geode_robot_price'][2]
-        old_state['geodes_opened'] -= 1 #because of move_on
-        return State(*old_state.values())
-
-def combined_move(state: State, type: str, bp: tuple) -> State:
-    if type == 'wait':
-        return move_on(state, bp)
-    if type == 'ore':
-        if afford_robot(state, 'ore', bp):
-            state = buy_robot(state, 'ore', bp)
-        return move_on(state, bp)
-    if type == 'clay':
-        if afford_robot(state, 'clay', bp):
-            state = buy_robot(state, 'clay', bp)
-        return move_on(state, bp)
-    if type == 'obsidian':
-        if afford_robot(state, 'obsidian', bp):
-            state = buy_robot(state, 'obsidian', bp)
-        return move_on(state, bp)
-    if type == 'geode':
-        if afford_robot(state, 'geode', bp):
-            state = buy_robot(state, 'geode', bp)
-        return move_on(state, bp)  
 
 
+def dfs(time_left_i: int, deposit_i: tuple[int], robots_i: tuple[int], bp_i: tuple[int]) -> int:
+    # deposit: 0 ore, 1 clay, 2 obsidian, 3 geodes
+    # robots: 0 ore, 1 clay, 2 obsidian, 3 geode
+    
+    visited = set((time_left_i,deposit_i,robots_i,bp_i))
+    
+    queue = deque([(time_left_i,deposit_i,robots_i,bp_i)])
+    
+    # 0: ore, 1: clay, 2: obsidian
+    ms = max_spending(bp_i)
+    #print(ms)
+    
+    max_geodes = 0
+    
+    while queue:
+        
+        t = queue.popleft()
+        #print(t)
+        time_left = t[0]
+        deposit = t[1]
+        robots = t[2]
+        bp = t[3] 
+        
+        if (time_left, deposit, robots, bp) in visited:
+            continue
+        
+        visited.add((time_left, deposit, robots, bp))
+        
+        max_geodes = max(max_geodes, deposit[3])
+        
+        if time_left == 0:
+            continue
+        
+        # buy ore robot if possible and desirable
+        if deposit[0] >= bp[1] and robots[0] < ms[0]:
+            new_deposit = (deposit[0] + robots[0] - bp[1], deposit[1] + robots[1], deposit[2] + robots[2], deposit[3] + robots[3])
+            new_robots = (robots[0] + 1, robots[1], robots[2], robots[3])
+            queue.append((time_left - 1, new_deposit, new_robots, bp))
+            #print(t)
+        
+        # buy clay robot if possible and desirable
+        if deposit[0] >= bp[2] and robots[1] < ms[1]:
+            new_deposit = (deposit[0] + robots[0] - bp[2], deposit[1] + robots[1], deposit[2] + robots[2], deposit[3] + robots[3])
+            new_robots = (robots[0], robots[1] + 1, robots[2], robots[3])
+            queue.append((time_left - 1, new_deposit, new_robots, bp))
+            #print(t)
+        
+        # buy obisian robot if possible and desirable
+        if deposit[0] >= bp[3] and deposit[1] >= bp[4] and robots[2] < ms[2]:
+            new_deposit = (deposit[0] + robots[0] - bp[3], deposit[1] + robots[1] - bp[4], deposit[2] + robots[2], deposit[3] + robots[3])
+            new_robots = (robots[0], robots[1], robots[2] + 1, robots[3])
+            queue.append((time_left - 1, new_deposit, new_robots, bp))
+            #print(t)
+        
+        # buy geode robot if possible
+        if deposit[0] >= bp[5] and deposit[2] >= bp[6]:
+            new_deposit = (deposit[0] + robots[0] - bp[5], deposit[1] + robots[1], deposit[2] + robots[2] - bp[6], deposit[3] + robots[3])
+            new_robots = (robots[0], robots[1], robots[2], robots[3] + 1)
+            queue.append((time_left - 1, new_deposit, new_robots, bp))
+            
+        # do not build anything
+        # if there are bp[5] ore robots and bp[6] obsidian robots, a geode robot can be built every round
+        if robots[0] < bp[5] or robots[2] < bp[6]:
+            new_deposit = (min(deposit[0] + robots[0], ms[0] + 10), min(deposit[1] + robots[1], ms[1] + 10), min(deposit[2] + robots[2], ms[2] + 10), deposit[3] + robots[3])
+            queue.append((time_left - 1, new_deposit, robots, bp))
+        
+            
+            
+        
+        
+    return max_geodes    
 
-"""
-    Part One: DFS
-"""
-@cache
-def dfs(state: State, bp: tuple) -> int:
-    
-    if state.get_state()['time_left'] == 0:
-        return state.get_state()['geodes_opened']
-    
-    key = state.get_signature()
-    
-    # Worst case maxval: do nothing
-    maxval = state.get_state()['geodes_opened'] + state.get_state()['time_left'] * state.get_state()['geode_robots']
-    
-    types = ['wait', 'ore', 'clay', 'obsidian', 'geode']
-    
-    new_states = [combined_move(state, type, bp) for type in types]
-    
-    maxval = max(maxval, max([dfs(new_state, bp) for new_state in new_states])) 
-    
-    
-    return maxval
+if False:
+    quality_level = 0
+    for t in data:
+        quality_level += dfs(24,(0,0,0,0),(1,0,0,0),t) * t[0]   
 
-quality_level = 0
-for t in data:
-    quality_level += dfs(State(24,1,0,0,0,0,0,0,0), t) * t[0]
-print(quality_level)
+    print(quality_level)
+
+
+print(dfs(32,(0,0,0,0),(1,0,0,0),data[0]))

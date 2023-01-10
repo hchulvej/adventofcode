@@ -1,5 +1,4 @@
 import re
-from dataclasses import dataclass
 from collections import deque
 
 """
@@ -48,7 +47,11 @@ def dfs(time_left_i: int, deposit_i: tuple[int], robots_i: tuple[int], bp_i: tup
     
     # 0: ore, 1: clay, 2: obsidian
     ms = max_spending(bp_i)
-    #print(ms)
+    
+    # Optimizations:
+    # 1: never have more robots than given in max spending
+    # 2: if you can produce a geode robot, do so every round
+    # 3: avoid creation of excess ressources
     
     max_geodes = 0
     
@@ -71,6 +74,7 @@ def dfs(time_left_i: int, deposit_i: tuple[int], robots_i: tuple[int], bp_i: tup
         if time_left == 0:
             continue
         
+        # Optimization 1
         # buy ore robot if possible and desirable
         if deposit[0] >= bp[1] and robots[0] < ms[0]:
             new_deposit = (deposit[0] + robots[0] - bp[1], deposit[1] + robots[1], deposit[2] + robots[2], deposit[3] + robots[3])
@@ -99,18 +103,15 @@ def dfs(time_left_i: int, deposit_i: tuple[int], robots_i: tuple[int], bp_i: tup
             queue.append((time_left - 1, new_deposit, new_robots, bp))
             
         # do not build anything
+        # Optimization 2
         # if there are bp[5] ore robots and bp[6] obsidian robots, a geode robot can be built every round
-        if robots[0] < bp[5] or robots[2] < bp[6]:
-            new_deposit = (min(deposit[0] + robots[0], ms[0] + 10), min(deposit[1] + robots[1], ms[1] + 10), min(deposit[2] + robots[2], ms[2] + 10), deposit[3] + robots[3])
+        if robots[0] + deposit[0] < bp[5] or robots[2] + deposit[2] < bp[6]:
+            new_deposit = (deposit[0] + robots[0], deposit[1] + robots[1], deposit[2] + robots[2], deposit[3] + robots[3])
             queue.append((time_left - 1, new_deposit, robots, bp))
-        
-            
-            
-        
         
     return max_geodes    
 
-if False:
+if True:
     quality_level = 0
     for t in data:
         quality_level += dfs(24,(0,0,0,0),(1,0,0,0),t) * t[0]   
@@ -118,4 +119,4 @@ if False:
     print(quality_level)
 
 
-print(dfs(32,(0,0,0,0),(1,0,0,0),data[0]))
+#print(dfs(32,(0,0,0,0),(1,0,0,0),data[0]))

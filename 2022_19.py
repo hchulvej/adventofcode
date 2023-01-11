@@ -33,7 +33,7 @@ if False:
 # This also means that there is no need to build more
 # robots of each type than the max spending, since
 # each robot mines 1 ressource per minute
-def max_spending(t: list[int]) -> list[int]:
+def max_spending(t: tuple[int]) -> list[int]:
     res = list([0, 0, 0]) # ore, clay, obsidian
     res[0] = max(t[1], t[2], t[3], t[5])
     res[1] = t[4]
@@ -43,11 +43,13 @@ def max_spending(t: list[int]) -> list[int]:
 
 
 
-def dfs(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int]) -> int:
+def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int]) -> int:
     
     
     # 0: ore, 1: clay, 2: obsidian
-    ms = max_spending(bp)
+    max_ore, max_clay, max_obs = max_spending(bp)
+    ore_cost_r_ore, ore_cost_r_clay, ore_cost_r_obs, clay_cost_r_obs, ore_cost_r_geo, obs_cost_r_geo = bp
+    
     
     # Optimizations:
     # 1: never have more robots than given in max spending
@@ -57,7 +59,8 @@ def dfs(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int]) -
     # deposit: 0 ore, 1 clay, 2 obsidian, 3 geodes
     # robots: 0 ore, 1 clay, 2 obsidian, 3 geode
     
-    queue = deque([tuple([time_left, *deposit, *robots])])
+    staring_state = (time_left, *deposit, *robots)
+    queue = deque([staring_state])
     
     seen_states = set()
     
@@ -68,50 +71,59 @@ def dfs(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int]) -
         state = queue.popleft()
         time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo = state
         
+        max_geodes = max(max_geodes, d_geo)
+        
         if time == 0:
             continue
         
-        max_geodes = max(max_geodes, d_geo)
-    
-        if tuple([time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo]) in seen_states:
+         
+        # Trimming the inventory
+        # Void robots that you don't need
+        r_ore = min(r_ore, max_ore)
+        r_clay = min(r_clay, max_clay)
+        r_obs = min(r_obs, max_obs)
+        # Void ressources that you can never spend
+        d_ore = min(d_ore, max_ore * time - r_ore * (time - 1))
+        d_clay = min(d_clay, max_clay * time - r_clay * (time - 1))
+        d_obs = min(d_obs, max_obs * time - r_obs * (time - 1))
+        
+        
+        
+        if (time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo) in seen_states:
             continue
         
-        # Trimming the deposits
-        # Void ressources that you can never spend
-        if r_ore * time + d_ore > ms[0] * time:
-            d_ore = ms[0] * time - r_ore * time
-        if r_clay * time + d_clay > ms[1] * time:
-            d_clay = ms[1] * time - r_clay * time
-        if r_obs * time + d_obs > ms[2] * time:
-            d_obs = ms[2] * time - r_obs * time
+        seen_states.add((time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo))
         
-        seen_states.add(tuple([time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo]))
-        #print(time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo)
+        #if len(seen_states) % 1000000 == 0:
+        #    print(f"({time}, {d_ore}, {d_clay}, {d_obs}, {d_geo}, {r_ore}, {r_clay}, {r_obs}, {r_geo})")
         
+        
+        assert d_ore >=0 and d_clay >= 0 and d_obs >= 0 and d_geo >= 0, f"({time}, {d_ore}, {d_clay}, {d_obs}, {d_geo}, {r_ore}, {r_clay}, {r_obs}, {r_geo})"
+        
+                   
         # Option 1: do not build robots
-        queue.append(tuple([time - 1, d_ore + r_ore, d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs, r_geo]))
-        
-        # If you can afford a geode robot, build it
-        enough_robots = r_ore >= bp[5] and r_obs >= bp[6]
-        if enough_robots:
-            queue.append(tuple([time - 1, 0, 0, 0, d_geo + r_geo, 0, 0, 0, r_geo + 1]))
-            print("Build geode robot")
+        queue.append((time - 1, d_ore + r_ore, d_clay + r_clay, d_clay + r_clay, d_geo + r_geo, r_ore, r_clay, r_obs, r_geo))
         
         # Option 2: build an ore robot
-        if bp[1] <= d_ore and r_ore < ms[0] and not enough_robots:
-            queue.append(tuple([time - 1, d_ore + r_ore - bp[1], d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore + 1, r_clay, r_obs, r_geo]))
-            print("Build ore robot", d_ore, r_ore, bp, ms)
+        if ore_cost_r_ore <= d_ore:
+            queue.append((time - 1, d_ore + r_ore - ore_cost_r_ore, d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore + 1, r_clay, r_obs, r_geo))
+            #print("Build ore robot", d_ore, r_ore, bp, ms)
         
         # Option 3: build a clay robot
-        if bp[2] <= d_clay and r_clay < ms[1] and not enough_robots:
-            queue.append(tuple([time - 1, d_ore + r_ore, d_clay + r_clay - bp[2], d_obs + r_obs, d_geo + r_geo, r_ore, r_clay + 1, r_obs, r_geo]))
-            print("Build clay robot")
+        if bp[2] <= d_ore:
+            queue.append((time - 1, d_ore + r_ore - bp[2], d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay + 1, r_obs, r_geo))
+            #print("Build clay robot")
             
         # Option 4: build an obsidian robot
-        if bp[3] <= d_ore and bp[4] <= d_clay and r_obs < ms[2] and not enough_robots:
-            queue.append(tuple([time - 1, d_ore + r_ore - bp[3], d_clay + r_clay - bp[4], d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs + 1, r_geo]))
-            print("Build obsidian robot")
+        if bp[3] <= d_ore and bp[4] <= d_clay:
+            queue.append((time - 1, d_ore + r_ore - bp[3], d_clay + r_clay - bp[4], d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs + 1, r_geo))
+            #print("Build obsidian robot")
         
+        if bp[5] <= d_ore and bp[6] <= d_obs:
+            queue.append((time - 1, d_ore + r_ore - bp[5], d_clay + r_clay, d_obs + r_obs - bp[6], d_geo + r_geo, r_ore, r_clay, r_obs, r_geo + 1))
+    
+    
+            
     return max_geodes
 
 if False:
@@ -122,4 +134,4 @@ if False:
     print(quality_level)
 
 
-print(dfs(24,[0,0,0,0],[1,0,0,0],data[0]))
+print(solve(24,[0,0,0,0],[1,0,0,0],data[0]))

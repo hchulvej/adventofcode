@@ -1,6 +1,6 @@
 import re
 from collections import deque
-from functools import cache
+import math
 
 """
     Load and parse data
@@ -48,7 +48,7 @@ def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int])
     
     # 0: ore, 1: clay, 2: obsidian
     max_ore, max_clay, max_obs = max_spending(bp)
-    ore_cost_r_ore, ore_cost_r_clay, ore_cost_r_obs, clay_cost_r_obs, ore_cost_r_geo, obs_cost_r_geo = bp
+    ore_cost_r_ore, ore_cost_r_clay, ore_cost_r_obs, clay_cost_r_obs, ore_cost_r_geo, obs_cost_r_geo = bp[1:]
     
     
     # Optimizations:
@@ -60,6 +60,8 @@ def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int])
     # robots: 0 ore, 1 clay, 2 obsidian, 3 geode
     
     staring_state = (time_left, *deposit, *robots)
+    print(staring_state)
+    print(max_ore, max_clay, max_obs)
     queue = deque([staring_state])
     
     seen_states = set()
@@ -71,7 +73,8 @@ def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int])
         state = queue.popleft()
         time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo = state
         
-        max_geodes = max(max_geodes, d_geo)
+        if d_geo > max_geodes:
+            max_geodes = d_geo
         
         if time == 0:
             continue
@@ -83,9 +86,12 @@ def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int])
         r_clay = min(r_clay, max_clay)
         r_obs = min(r_obs, max_obs)
         # Void ressources that you can never spend
-        d_ore = min(d_ore, max_ore * time - r_ore * (time - 1))
-        d_clay = min(d_clay, max_clay * time - r_clay * (time - 1))
-        d_obs = min(d_obs, max_obs * time - r_obs * (time - 1))
+        if max_ore * time - r_ore * (time - 1) <= d_ore:
+            d_ore = max_ore * time - r_ore * (time - 1)
+        if max_clay * time - r_clay * (time - 1) <= d_clay:
+            d_clay = max_clay * time - r_clay * (time - 1)
+        if max_obs * time - r_obs * (time - 1) <= d_obs:
+            d_obs =max_obs * time - r_obs * (time - 1)
         
         
         
@@ -94,7 +100,7 @@ def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int])
         
         seen_states.add((time, d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo))
         
-        #if len(seen_states) % 1000000 == 0:
+        #if len(seen_states) % 100000 == 0:
         #    print(f"({time}, {d_ore}, {d_clay}, {d_obs}, {d_geo}, {r_ore}, {r_clay}, {r_obs}, {r_geo})")
         
         
@@ -110,21 +116,70 @@ def solve(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int])
             #print("Build ore robot", d_ore, r_ore, bp, ms)
         
         # Option 3: build a clay robot
-        if bp[2] <= d_ore:
-            queue.append((time - 1, d_ore + r_ore - bp[2], d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay + 1, r_obs, r_geo))
+        if ore_cost_r_clay <= d_ore:
+            queue.append((time - 1, d_ore + r_ore - ore_cost_r_clay, d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay + 1, r_obs, r_geo))
             #print("Build clay robot")
             
         # Option 4: build an obsidian robot
-        if bp[3] <= d_ore and bp[4] <= d_clay:
-            queue.append((time - 1, d_ore + r_ore - bp[3], d_clay + r_clay - bp[4], d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs + 1, r_geo))
+        if ore_cost_r_obs <= d_ore and clay_cost_r_obs <= d_clay:
+            queue.append((time - 1, d_ore + r_ore - ore_cost_r_obs, d_clay + r_clay - clay_cost_r_obs, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs + 1, r_geo))
             #print("Build obsidian robot")
         
-        if bp[5] <= d_ore and bp[6] <= d_obs:
-            queue.append((time - 1, d_ore + r_ore - bp[5], d_clay + r_clay, d_obs + r_obs - bp[6], d_geo + r_geo, r_ore, r_clay, r_obs, r_geo + 1))
+        if ore_cost_r_geo <= d_ore and obs_cost_r_geo <= d_obs:
+            queue.append((time - 1, d_ore + r_ore - ore_cost_r_geo, d_clay + r_clay, d_obs + r_obs - obs_cost_r_geo, d_geo + r_geo, r_ore, r_clay, r_obs, r_geo + 1))
     
     
             
     return max_geodes
+
+def solvejp(Co, Cc, Co1, Co2, Cg1, Cg2, T):
+    best = 0
+    # state is (ore, clay, obsidian, geodes, r1, r2, r3, r4, time)
+    S = (0, 0, 0, 0, 1, 0, 0, 0, T)
+    Q = deque([S])
+    SEEN = set()
+    while Q:
+        state = Q.popleft()
+        #print(state)
+        o,c,ob,g,r1,r2,r3,r4,t = state
+
+        best = max(best, g)
+        if t==0:
+            continue
+
+        Core = max([Co, Cc, Co1, Cg1])
+        if r1>=Core:
+            r1 = Core
+        if r2>=Co2:
+            r2 = Co2
+        if r3>=Cg2:
+            r3 = Cg2
+        if o >= t*Core-r1*(t-1):
+            o = t*Core-r1*(t-1)
+        if c>=t*Co2-r2*(t-1):
+            c = t*Co2 - r2*(t-1)
+        if ob>=t*Cg2-r3*(t-1):
+            ob = t*Cg2-r3*(t-1)
+
+        state = (o,c,ob,g,r1,r2,r3,r4,t)
+
+        if state in SEEN:
+            continue
+        SEEN.add(state)
+
+        if len(SEEN) % 1000000 == 0:
+            print(t,best,len(SEEN))
+        assert o>=0 and c>=0 and ob>=0 and g>=0, state
+        Q.append((o+r1,c+r2,ob+r3,g+r4,r1,r2,r3,r4,t-1))
+        if o>=Co: # buy ore
+            Q.append((o-Co+r1, c+r2, ob+r3, g+r4, r1+1,r2,r3,r4,t-1))
+        if o>=Cc:
+            Q.append((o-Cc+r1, c+r2, ob+r3, g+r4, r1,r2+1,r3,r4,t-1))
+        if o>=Co1 and c>=Co2:
+            Q.append((o-Co1+r1, c-Co2+r2, ob+r3, g+r4, r1,r2,r3+1,r4,t-1))
+        if o>=Cg1 and ob>=Cg2:
+            Q.append((o-Cg1+r1, c+r2, ob-Cg2+r3, g+r4, r1,r2,r3,r4+1,t-1))
+    return best
 
 if False:
     quality_level = 0
@@ -135,3 +190,4 @@ if False:
 
 
 print(solve(24,[0,0,0,0],[1,0,0,0],data[0]))
+print(solvejp(*data[0][1:], 24))

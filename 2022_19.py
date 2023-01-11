@@ -100,7 +100,7 @@ def dfs(time_left: int, deposit: list[int], robots: list[int], bp: tuple[int]) -
         # Option 2: build an ore robot
         if bp[1] <= d_ore and r_ore < ms[0] and not enough_robots:
             queue.append(tuple([time - 1, d_ore + r_ore - bp[1], d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore + 1, r_clay, r_obs, r_geo]))
-            print("Build ore robot", r_ore, bp, ms)
+            print("Build ore robot", d_ore, r_ore, bp, ms)
         
         # Option 3: build a clay robot
         if bp[2] <= d_clay and r_clay < ms[1] and not enough_robots:

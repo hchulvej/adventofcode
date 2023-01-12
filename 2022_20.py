@@ -17,4 +17,5 @@ FILE_LENGTH = len(data)
 
 positions = dict(zip(range(FILE_LENGTH), [[data[i]] for i in range(FILE_LENGTH)]))
 
-print(positions)
+for i, a in enumerate(positions):
+    print(i, a)

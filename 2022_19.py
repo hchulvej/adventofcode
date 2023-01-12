@@ -6,7 +6,7 @@ import math
     Load and parse data
 """
 
-with open('./2022_19_small.txt', "r", encoding="utf-8") as file:
+with open('./2022_19.txt', "r", encoding="utf-8") as file:
     data = list()
     for line in file:
         data.append(tuple([int(x) for x in re.findall(r'\d+', line)]))
@@ -181,13 +181,76 @@ def solvejp(Co, Cc, Co1, Co2, Cg1, Cg2, T):
             Q.append((o-Cg1+r1, c+r2, ob-Cg2+r3, g+r4, r1,r2,r3,r4+1,t-1))
     return best
 
-if False:
+def solvecopyjp(ore_cost_r_ore, ore_cost_r_clay, ore_cost_r_obs, clay_cost_r_obs, ore_cost_r_geo, obs_cost_r_geo, starting_time):
+    max_geodes = 0
+    starting_state = (0, 0, 0, 0, 1, 0, 0, 0, starting_time)
+    queue = deque([starting_state])
+    
+    visited_states = set()
+    
+    while queue:
+        state = queue.popleft()
+        d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo, time = state
+        
+        max_geodes = max(max_geodes, d_geo)
+        
+        if time == 0:
+            continue
+        
+        max_ore = max(ore_cost_r_clay, ore_cost_r_geo, ore_cost_r_obs, ore_cost_r_ore)
+        max_clay = clay_cost_r_obs
+        max_obs = obs_cost_r_geo
+        
+        r_ore = min(r_ore, max_ore)
+        r_clay = min(r_clay, max_clay)
+        r_obs = min(r_obs, max_obs)
+        
+        max_spend_ore = max_ore * time - r_ore * (time - 1)
+        max_spend_clay = max_clay * time - r_clay * (time - 1)
+        max_spend_obs = max_obs * time - r_obs * (time - 1)
+        
+        d_ore = min(d_ore, max(0, max_spend_ore))
+        d_clay = min(d_clay, max(0, max_spend_clay))
+        d_obs = min(d_obs, max(0, max_spend_obs))
+        
+        state = (d_ore, d_clay, d_obs, d_geo, r_ore, r_clay, r_obs, r_geo, time)
+        
+        if state in visited_states:
+            continue
+        visited_states.add(state)
+        
+        assert d_ore >=0 and d_clay >= 0 and d_obs >= 0, state
+        
+        # buy no robots
+        queue.append((d_ore + r_ore, d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs, r_geo, time - 1))
+                
+        # buy ore robot
+        if ore_cost_r_ore <= d_ore:
+            queue.append((d_ore + r_ore - ore_cost_r_ore, d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore + 1, r_clay, r_obs, r_geo, time - 1))
+        
+        # buy clay robot
+        if ore_cost_r_clay <= d_ore:
+            queue.append((d_ore + r_ore - ore_cost_r_clay, d_clay + r_clay, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay + 1, r_obs, r_geo, time - 1))
+        
+        # buy obsidian robot
+        if ore_cost_r_obs <= d_ore and clay_cost_r_obs <= d_clay:
+            queue.append((d_ore + r_ore - ore_cost_r_obs, d_clay + r_clay - clay_cost_r_obs, d_obs + r_obs, d_geo + r_geo, r_ore, r_clay, r_obs + 1, r_geo, time - 1))
+        
+        # buy geode robot
+        if ore_cost_r_geo <= d_ore and obs_cost_r_geo <= d_obs:
+            queue.append((d_ore + r_ore - ore_cost_r_geo, d_clay + r_clay, d_obs + r_obs - obs_cost_r_geo, d_geo + r_geo, r_ore, r_clay, r_obs, r_geo + 1, time - 1))
+    
+    return max_geodes
+
+if True:
     quality_level = 0
     for t in data:
-        quality_level += dfs(24,[0,0,0,0],[1,0,0,0],t) * t[0]   
+        quality_level += solvecopyjp(*t[1:], 24) * t[0]   
 
     print(quality_level)
 
+print(solvecopyjp(*data[0][1:], 32) * solvecopyjp(*data[1][1:], 32) * solvecopyjp(*data[2][1:], 32))
 
-print(solve(24,[0,0,0,0],[1,0,0,0],data[0]))
-print(solvejp(*data[0][1:], 24))
+#print(solve(24,[0,0,0,0],[1,0,0,0],data[0]))
+#print(solvejp(*data[0][1:], 24))
+#print(solvecopyjp(*data[0][1:], 24))

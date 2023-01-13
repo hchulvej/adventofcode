@@ -1,45 +1,61 @@
-import math
+
 
 """
     Load and parse data
 """
 
-with open('./2022_20.txt', "r", encoding="utf-8") as file:
+with open('./2022_20_small.txt', "r", encoding="utf-8") as file:
     data = list()
     for line in file:
         data.append(int(line.strip()))
 
-FILE_LENGTH = len(data)
+FL = len(data)
 
+elements = list(zip(range(FL), data))
+   
 """
     Part One: Mixing
 """
 
-def move(element: int, l: list[int]) -> list[str]:
-    if element == 0:
+def move(orig_index: int, l: list[tuple]) -> list[tuple]:
+    val = data[orig_index]
+    
+    if val == 0:
         return l
-       
-    if element > 0:
-        ind_e = l.index(element)
-        ind_n = (ind_e + abs(element)) % (FILE_LENGTH - 1)
-        l.remove(element)
-        l.insert(ind_n, element)
-    if element < 0:
-        l.reverse()
-        ind_e = l.index(element)
-        ind_n = (ind_e - element) % (FILE_LENGTH - 1)
-        l.remove(element)
-        l.insert(ind_n, element)
-        l.reverse()
-        
+    
+    curr_index = l.index((orig_index, val))
+    new_index = (curr_index + val) % (FL - 1)
+    
+    if val > 0:
+        if new_index < FL - 2:
+            l.insert(new_index + 1, (orig_index, val))
+            if new_index <= curr_index:
+                l.pop(curr_index + 1)
+            else:
+                l.pop(curr_index)
+        if new_index == FL - 2:
+            l.pop(curr_index)
+            l.insert(0, (orig_index, val))
+        if new_index == FL - 1:
+            l.pop(curr_index)
+            l.insert(1, (orig_index, val))
+    
+    if val < 0:
+        if new_index > 1:
+            l.insert(new_index - 1, (orig_index, val))
+            l.pop(curr_index)
+        if new_index == 1:
+            l.pop(curr_index)
+            l.append((orig_index, val))
+        if new_index == 0:
+            l.pop(curr_index)
+            l.insert(FL - 2, (orig_index, val))
+    
     return l
 
-l = data.copy()
-for element in data:
-    l = move(element, l)
+l = elements.copy()
+print(l)
+for i in range(FL):
+    l = move(i, l)
+    print(l)
     
-ind_0 = l.index(0)
-ind_1 = (ind_0 + 1000) % (FILE_LENGTH)
-ind_2 = (ind_0 + 2000) % (FILE_LENGTH)
-ind_3 = (ind_0 + 3000) % (FILE_LENGTH)
-print(l[ind_1] + l[ind_2] + l[ind_3])

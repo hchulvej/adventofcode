@@ -31,8 +31,8 @@ def move(orig_ind: int, l: list[int]) -> list[int]:
         steps = -steps
         right = False
     
-    #steps = steps % (FL - 1)
-    
+    steps = steps % (FL - 1)
+        
     if right:
         to_overtake = (l.index(orig_ind) + steps) % FL
         if to_overtake == FL - 1:
@@ -78,15 +78,15 @@ for i in range(FL):
     indices = move(i, indices)
 
 elems = elements(indices)
+print(elems)
 
 
 z_index = elems.index(0)
-print(z_index)
 sum_val = 0
 for _ in range(3):
     z_index += 1000
-    z_index = z_index % (FL - 1)
-    print(z_index)
+    z_index = z_index % FL
+    print(elems[z_index])
     sum_val += elems[z_index]
 
 print(sum_val)

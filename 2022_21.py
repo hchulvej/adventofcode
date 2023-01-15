@@ -70,3 +70,10 @@ if False:
             print(monkey_business['value'])
         else:
             continue
+
+"""
+    Part Two
+"""
+
+monkeys['humn']['value'] = None
+ready_monkeys.remove('humn')

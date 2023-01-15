@@ -36,7 +36,7 @@ for monkey_name, monkey_business in monkeys.items():
     else:
         waiting_monkeys.append(monkey_name)
 
-if True:
+if False:
     while 'root' not in ready_monkeys:
         
         wm = [m for m in waiting_monkeys]
@@ -65,8 +65,8 @@ if True:
             else:
                 continue
 
-for monkey_name, monkey_business in monkeys.items():
-    if monkey_name == 'root':
-        print(monkey_business['value'])
-    else:
-        continue
+    for monkey_name, monkey_business in monkeys.items():
+        if monkey_name == 'root':
+            print(monkey_business['value'])
+        else:
+            continue

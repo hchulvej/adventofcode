@@ -50,6 +50,13 @@ def partOne():
 # partOne()
 
 def partTwo():
-    print(parse_game_input(games[0]))
+    score = 0
+    for i in range(len(games)):
+        parsed_game = parse_game_input(games[i])
+        min_red = max([t[0] for t in parsed_game])
+        min_green = max([t[1] for t in parsed_game])
+        min_blue = max([t[2] for t in parsed_game])
+        score = score + min_red * min_green * min_blue
+    print(score)
 
 partTwo()

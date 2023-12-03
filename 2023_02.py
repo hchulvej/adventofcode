@@ -38,10 +38,18 @@ def check_game(game):
             res = False
     return res
 
-score = 0
 
-for i in range(len(games)):
-    if check_game(parse_game_input(games[i])):
-        score = score + i + 1
-        
-print(score)
+def partOne():
+    score = 0
+
+    for i in range(len(games)):
+        if check_game(parse_game_input(games[i])):
+            score = score + i + 1    
+    print(score)
+    
+# partOne()
+
+def partTwo():
+    print(parse_game_input(games[0]))
+
+partTwo()

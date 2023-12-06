@@ -1,6 +1,6 @@
 input = []
 
-with open('2023_03_1.txt', 'r') as f:
+with open('2023_03_test.txt', 'r') as f:
     for l in f.readlines():
         input.append(l.replace('\n', ''))
 

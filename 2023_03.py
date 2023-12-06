@@ -1,6 +1,6 @@
 input = []
 
-with open('2023_03_test.txt', 'r') as f:
+with open('2023_03_1.txt', 'r') as f:
     for l in f.readlines():
         input.append(l.replace('\n', ''))
 
@@ -11,42 +11,32 @@ nc = len(input[0])
 print("Number of rows: " + str(nr))
 print("Number of columns: " + str(nc))
 
-s = "." +  input[0]
-for i in range(1, nr):
-    s += input[i]
+def get_value(t):
+    return input[t[0]][t[1]]
 
-# 1, 2, ... , nc
-# nc + 1, nc + 2, ..., 2nc
-def index_to_coords(i):
-    return ((i - 1) // nc + 1, (i - 1) % nc + 1)
+def adjacent_coordinates(r, c):
+    circle = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    return [(r + dr, c + dc) for dr, dc in circle if 0 <= r + dr < nr and 0 <= c + dc < nc]
 
-def coords_to_index(r, c):
-    return (r - 1) * nr + c
+def valid_number(r, c):
+    return get_value((r, c)).isdigit() and len([get_value(t) for t in adjacent_coordinates(r,c) if not get_value(t).isdigit() and get_value(t) != '.']) > 0
 
-def adjacent(r, c):
-    return [(r + dr, c + dc) for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)] if 0 < r + dr <= nr and 0 < c + dc <= nc]
+valid_numbers = []
 
-def is_symbol(i):
-    return not (s[i].isdigit() or s[i] == '.')
-
-def counts(i):
-    return s[i].isdigit() and any([is_symbol(coords_to_index(*t)) for t in adjacent(*index_to_coords(i))])
-
-total = 0
-
-for r in range(1, nr + 1):
-    valid = False
-    n = ""
-    for c in range(1, nc + 1):
-        if not s[coords_to_index(r, c)].isdigit():
-            if len(n) > 0 and valid:
-                # print(n)
-                total = total + int(n)
-            valid = False
-            n = ""
+for r in range(nr):
+    number = ""
+    counts = False
+    for c in range(nc):
+        if get_value((r, c)).isdigit():
+            number += get_value((r, c))
+            if valid_number(r, c):
+                counts = True
+            if c == 139 and counts:
+                valid_numbers.append(int(number))
         else:
-            n += s[coords_to_index(r, c)]
-            if counts(coords_to_index(r, c)):
-                valid = True
-    
-print("Total: " + str(total))
+            if (len(number) > 0) and counts:
+                valid_numbers.append(int(number))
+            counts = False
+            number = ""
+
+print(sum(valid_numbers))

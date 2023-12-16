@@ -41,9 +41,9 @@ part1 = 0
 winning_cards = dict()
 
 for i, win_no in enumerate(winning_no):
-    sc = score(win_no, cards[i])
+    sc1 = score(win_no, cards[i])
     sc2 = score(win_no, cards[i], 2)
-    part1 += sc
+    part1 += sc1
     if sc2 > 0:
         winning_cards[i] = sc2
 

@@ -38,15 +38,16 @@ def score(card, list_of_winning_numbers, part=1):
 
 part1 = 0
 
-winning_cards = set()
+winning_cards = dict()
 
 for i, win_no in enumerate(winning_no):
     sc = score(win_no, cards[i])
+    sc2 = score(win_no, cards[i], 2)
     part1 += sc
-    if sc > 0:
-        winning_cards.add(i)
+    if sc2 > 0:
+        winning_cards[i] = sc2
 
 print("Part 1: " + str(part1))
 
-
+print(winning_cards)
     

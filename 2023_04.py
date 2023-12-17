@@ -1,6 +1,6 @@
 input = []
 
-with open('2023_04_test.txt', 'r') as f:
+with open('2023_04_1.txt', 'r') as f:
     for l in f.readlines():
         input.append(l.replace('\n', ''))
 
@@ -47,7 +47,15 @@ for i, win_no in enumerate(winning_no):
     if sc2 > 0:
         winning_cards[i] = sc2
 
-print("Part 1: " + str(part1))
+print("Part 1: " + str(part1) + "\n")
 
-print(winning_cards)
+scratchcards = [1]*len(cards)
+
+for c in range(len(cards)):
+    if c in winning_cards:
+        for n in range(scratchcards[c]):
+            for m in range(winning_cards[c]):
+                scratchcards[c + m + 1] += 1
+
+print("Part 2: " + str(sum(scratchcards)))
     

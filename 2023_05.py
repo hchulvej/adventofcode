@@ -1,6 +1,6 @@
 input = []
 
-with open('2023_05_1.txt', 'r') as f:
+with open('2023_05_test.txt', 'r') as f:
     input = [x.replace('\n', '') for x in f.readlines() if "map" not in x]
     input.append("")
 
@@ -32,6 +32,25 @@ def convert_seed(seed):
         
 
 print("Part 1: " + str(min([convert_seed(s) for s in seed_input])))
+
+## PART 2
+def intersection(intv, map_int):
+    a, b = intv
+    c, d = map_int[0]
+    le = max(a, c)
+    re = min(b, d)
+    if le >= re:
+        return (0,0)
+    else:
+        e, f  = map_int[1]
+        return (e + le - c, e + re - c)
+    
+
+print(intersection((81, 95), ((25,95), (18,88))))
+
+
+    
+    
 
 
 

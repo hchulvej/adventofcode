@@ -1,66 +1,38 @@
 input = []
 
 with open('2023_05_1.txt', 'r') as f:
-    for l in f.readlines():
-        input.append(l.replace('\n', ''))
+    input = [x.replace('\n', '') for x in f.readlines() if "map" not in x]
+    input.append("")
 
-seeds_to_be_sown = [int(n) for n in input[0].split("seeds: ")[1].split(", ")[0].split(" ")]
+seed_input = list(map(int, input[0].split(":")[1].strip().split(" ")))
 
-almanac = dict()
-cat = 0
-codes = []
+map_inputs = []
+temp = []
 
-i = 1
+def convert_to_intervals(arr):
+    return [(arr[1], arr[1] + arr[2]), (arr[0], arr[0] + arr[2])]
 
-while i < len(input):
-    if len(input[i]) == 0:
-        i += 1
+for x in input[2:]:
     
-    if not input[i][0].isdigit():
-        i += 1
-    
-    while i < len(input) and len(input[i]) > 0 and input[i][0].isdigit():
-        codes.append([int(n) for n in input[i].strip().split(" ")])
-        i += 1
-    
-    almanac[cat] = codes
-    cat +=1
-    codes = []
-    
+    if len(x) == 0:
+        map_inputs.append(temp)
+        temp = []
+    else:   
+        temp.append(convert_to_intervals(list(map(int, x.split(" ")))))
 
-seed_destinations = dict(zip(seeds_to_be_sown, [0] * len(seeds_to_be_sown)))
 
-def parse_intervals(arrs, curr):
-    for arr in arrs:
-        y = arr[0]
-        x = arr[1]
-        length = arr[2]
-        
-        if curr >= x and curr <= x + length - 1:
-            return curr - x + y
-    
-    return curr
-    
-for seed in seeds_to_be_sown:
-    original_seed = seed   
-    for i in almanac.keys():
-        seed = parse_intervals(almanac[i], seed)
-    seed_destinations[original_seed] = seed
+## PART 1
+def convert_seed(seed):
+    for maps in map_inputs:
+        for xy in maps:
+            if seed in range(xy[0][0], xy[0][1]):
+                seed = xy[1][0] + seed - xy[0][0]
+                break
+    return seed
         
 
+print("Part 1: " + str(min([convert_seed(s) for s in seed_input])))
 
-print("Part 1:", min(seed_destinations.values()))
 
-seed_destinations = dict()
-        
 
-for i in range(int(len(seeds_to_be_sown) / 2)):
-    start = seeds_to_be_sown[2 * i]
-    for j in range(seeds_to_be_sown[2 * i + 1]):
-        original_seed = start + j
-        seed = start + j
-        for k in almanac.keys():
-            seed = parse_intervals(almanac[k], seed)
-        seed_destinations[original_seed] = seed
 
-print("Part 2:", min(seed_destinations.values()))

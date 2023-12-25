@@ -1,70 +1,59 @@
 import sys
-input = open("2023_07_test.in").read().splitlines()
-values = list("AKQJT98765432")
+from collections import Counter
+input = open("2023_07_1.in").read().splitlines()
+values = list("23456789TJQKA")
 
-class Card:
-    def __init__(self, card):
-        self.card = card
-        self.scorecard = dict(zip(values, [0]*len(values)))
-        for c in list(self.card):
-            self.scorecard[c] += 1
-        
+def base_value(hand):
+    return -sum([values.index(hand[i]) * 13**(4 - i) for i in range(5)])
 
-
-def score(card):
-    first_card = card[0]
-    scorecard = dict(zip(values, [0]*len(values)))
-    for c in list(card):
-        scorecard[c] += 1
-    
-    scores = [scorecard[c] for c in scorecard.keys() if scorecard[c] > 0]
-    scores.sort(reverse=True)
-    scores = "".join(list(map(str, scores)))
-    
-    # Five of a kind
-    if scores == "5":
-        return (7, values.index(first_card))
-    # Four of a kind
-    if scores == "41":
-        return (6, values.index(first_card))
-    # Full house
-    if scores == "32":
-        return (5, values.index(first_card))
-    # Three of a kind
-    if scores == "311":
-        return (4, values.index(first_card))
-    # Two pairs
-    if scores == "221":
-        return (3, values.index(first_card))
-    # One pair
-    if scores == "2111":
-        return (2, values.index(first_card))
-    # High card
-    if scores == "11111":
-        return (1, values.index(first_card))
-
-def compare_cards(card1, card2):
-    score1 = score(card1)
-    score2 = score(card2)
-    if score1[0] > score2[0]:
+def hand_type(hand):
+    signature = sorted(Counter(hand).values(), reverse=True)
+    # 5 of a kind
+    if signature[0] == 5:
         return 1
-    elif score1[0] < score2[0]:
-        return -1
-    elif score1[0] == score2[0]:
-        if score1[1] > score2[1]:
-            return 1
-        elif score1[1] < score2[1]:
-            return -1
-        else:
-            return 0    
+    # 4 of a kind
+    if signature[0] == 4:
+        return 2
+    # Full house
+    if len(signature) > 1 and signature[0] == 3 and signature[1] == 2:
+        return 3
+    # 3 of a kind
+    if len(signature) > 1 and signature[0] == 3 and signature[1] == 1:
+        return 4
+    # 2 pairs
+    if len(signature) > 1 and signature[0] == 2 and signature[1] == 2:
+        return 5
+    # 1 pair
+    if len(signature) > 1 and signature[0] == 2 and signature[1] == 1:
+        return 6
+    else:
+        return 7
 
-cards = dict()
-card_ranks = dict()
+hands = dict()
+
 for line in input:
     pair = line.split(" ")
-    cards[pair[0]] = int(pair[1])
+    hands[pair[0]] = int(pair[1])
 
-sorted_cards = sorted(cards.keys(), key=lambda x: score(x)[0], reverse=True)
-sorted_cards = sorted(sorted_cards, key=lambda x: score(x)[1], reverse=False)
-print(cards)
-print(sorted_cards)
+s_hands = sorted(hands.keys(), key=base_value)
+s_hands = sorted(s_hands, key=hand_type)
+
+no_hands = len(s_hands)
+print("Part 1: " + str(sum([(no_hands - i) * hands[s_hands[i]] for i in range(no_hands)])))
+
+
+# Part 2
+values = list("J23456789TQKA")
+
+def hand_type_p2(hand: str):
+    possible_hands = set([hand])
+    for c in [hand[i] for i in range(5) if hand[i] != "J"]:
+        possible_hands.add(hand.replace("J", c, -1))
+    return min([hand_type(h) for h in possible_hands])
+
+
+s_hands = sorted(hands.keys(), key=base_value)
+s_hands = sorted(s_hands, key=hand_type_p2)
+
+no_hands = len(s_hands)
+print("Part 2: " + str(sum([(no_hands - i) * hands[s_hands[i]] for i in range(no_hands)])))

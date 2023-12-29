@@ -16,3 +16,17 @@ for r in range(len(input)):
     if r in empty_rows:
         scaled_input.append(new_r)
 
+galaxies = []
+
+for r in range(len(scaled_input)):
+    for c in range(len(scaled_input[r])):
+        if scaled_input[r][c] == "#":
+            galaxies.append((r,c))
+
+for i, g in enumerate(galaxies):
+    print(i, g)
+
+def manhattan(gal_1, gal_2):
+    return abs(gal_1[0] - gal_2[0]) + abs(gal_1[1] - gal_2[1])
+
+    

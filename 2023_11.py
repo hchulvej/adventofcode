@@ -1,32 +1,40 @@
-input = open("2023_11_test.in").read().splitlines()
+from itertools import combinations
+
+input = open("2023_11_1.in").read().splitlines()
 
 # Finding empty rows and columns
 empty_rows = [r for r in range(len(input)) if input[r].count("#") == 0]
 empty_cols = [c for c in range(len(input[0])) if not "#" in [input[r][c] for r in range(len(input))]]
 
-# Scaling the input
-scaled_input = []
-for r in range(len(input)):
-    new_r = ""
-    for c in range(len(input[r])):
-        new_r += input[r][c]
-        if c in empty_cols:
-            new_r += input[r][c]
-    scaled_input.append(new_r)
-    if r in empty_rows:
-        scaled_input.append(new_r)
-
 galaxies = []
 
-for r in range(len(scaled_input)):
-    for c in range(len(scaled_input[r])):
-        if scaled_input[r][c] == "#":
+for r in range(len(input)):
+    for c in range(len(input[r])):
+        if input[r][c] == "#":
             galaxies.append((r,c))
 
-for i, g in enumerate(galaxies):
-    print(i, g)
+def manhattan(gal_1, gal_2, factor):
+    r1, c1 = gal_1 
+    r2, c2 = gal_2
+    empty_rows_between = len([r for r in empty_rows if min(r1, r2) < r < max(r1, r2)])
+    empty_cols_between = len([c for c in empty_cols if min(c1, c2) < c < max(c1, c2)])
+    return abs(r1 - r2) + abs(c1 - c2) + factor * (empty_rows_between + empty_cols_between)
 
-def manhattan(gal_1, gal_2):
-    return abs(gal_1[0] - gal_2[0]) + abs(gal_1[1] - gal_2[1])
+# Part 1
+git = combinations(galaxies,2)
+total = 0
+for c in git:
+    total += manhattan(c[0], c[1], 1)
 
-    
+print("Part 1: Total distance is", total)
+
+# Part 2
+git = combinations(galaxies,2)
+total = 0
+for c in git:
+    total += manhattan(c[0], c[1], 999999)
+
+print("Part 2: Total distance is", total)
+
+
+

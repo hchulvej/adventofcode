@@ -1,40 +1,31 @@
-input = open("2023_13_1.in").read().splitlines()
-input.append("")
+grids = open("2023_13_test.in").read().split("\n\n")
 
-grids = []
+def rows(g):
+    return g.split("\n")
 
-grid = []
-for line in input:
-    if len(line) > 0:
-        grid.append(line)
-    else:
-        grids.append(grid)
-        grid = []
-
-def check_horizontal(g):
-    possible_lines = []
-    # Find line no
-    # line_i = line_(i+1)
-    for i in range(len(g) - 1):
-        if g[i] == g[i + 1]:
-            possible_lines.append(i)
-            
+def cols(g):
+    g_rows = rows(g)
+    return ["".join([g_rows[i][j] for j in range(len(g_rows[i]))]) for i in range(len(g_rows))]   
     
-    # Check if all rows are reflected
-    for i in possible_lines:
-        if all([g[i - k] == g[i + 1 + k] for k in range(len(g)) if i - k >=0 and i + 1 + k < len(g)]):
-            return 100 * (i + 1)
+def array_comp(str_1, str_2, offset):
+    if len(str_1) != len(str_2):
+        return False
+    diffs = 0
     
+    for i, e in enumerate(list(str_1)):
+        if e != str_2[i]:
+            diffs += 1
+    return offset == diffs
+
+def possible_lines(arr, offset):
+    return [i for i in range(len(arr) - 1) if array_comp(arr[i], arr[i + 1], offset)]
+
+def horizontal_lines(g):
+    return 0
+
+def vertical_lines(g):
     return 0
     
-
-def check_vertical(g):
-    cols = [[g[i][j] for i in range(len(g))] for j in range(len(g[0]))]
-    return int(check_horizontal(cols) / 100)
-
-
-def score(g):
-    return check_horizontal(g) + check_vertical(g)
-    
-        
-print("Part 1:", sum([score(g) for g in grids]))
+for g in grids:
+    print(possible_lines(rows(g), 0))
+    print(possible_lines(cols(g), 0))    

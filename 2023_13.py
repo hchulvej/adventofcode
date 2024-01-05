@@ -11,8 +11,6 @@ for line in input:
     else:
         temp_g.append(tuple(line))
 
-
-
 def no_rows(grid):
     return len(grid)
 

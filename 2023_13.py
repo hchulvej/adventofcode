@@ -27,5 +27,5 @@ def vertical_lines(g):
     return 0
     
 for g in grids:
-    print(possible_lines(rows(g), 0))
-    print(possible_lines(cols(g), 0))    
+    print(possible_lines(rows(g), 1))
+    print(possible_lines(cols(g), 1))    

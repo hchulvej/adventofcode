@@ -65,14 +65,24 @@ def cycle(arr):
     arr = rotate_grid(arr)
     return arr
 
-c_grid = cycle(grid)
-scores = dict()
-for i in range(1000):
-    s = score(c_grid)
-    if not s in scores.keys():
-        scores[s] = [i]
-    else:    
-        scores[s].append(i)
-    c_grid = cycle(c_grid)
+c_grid = grid
+scores = [score(c_grid)]
+i = 0
 
-print(scores)
+def hash(arr):
+    return "".join(["".join(arr.tolist()[i]) for i in range(arr.shape[0])])
+
+l_grid = hash(c_grid)
+
+seen = set()
+
+while l_grid not in seen:
+    seen.add(l_grid)
+    c_grid = cycle(c_grid)
+    l_grid = hash(c_grid)
+    scores.append(score(c_grid))
+    i += 1
+    if scores[i] == 102657:
+        print(i)
+
+print(scores[1000000000 % len(seen) + 1])

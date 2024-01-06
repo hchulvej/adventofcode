@@ -31,14 +31,48 @@ def slide_all_north(arr):
             arr = slide_north(arr, (r, c))
     return arr
 
+def score(arr):
+    total = 0
+    for r in range(arr.shape[0]):
+        for c in [c for c in range(arr.shape[1]) if arr[r, c] == "O"]:
+            total += arr.shape[0] - r
+    return total
 
 # Part 1
 north_grid = slide_all_north(grid)
-load_p1 = 0
-for r in range(grid.shape[0]):
-    for c in [c for c in range(grid.shape[1]) if grid[r, c] == "O"]:
-        load_p1 += grid.shape[0] - r
-print("Part 1:", load_p1)    
+
+print("Part 1:", score(north_grid))    
 
 
 # Helper functions part 2
+
+def rotate_grid(arr):
+    return np.rot90(arr, 3)
+
+def cycle(arr):
+    # North
+    arr = slide_all_north(arr)
+    # East
+    arr = rotate_grid(arr)
+    arr = slide_all_north(arr)
+    # South
+    arr = rotate_grid(arr)
+    arr = slide_all_north(arr)
+    # West
+    arr = rotate_grid(arr)
+    arr = slide_all_north(arr)
+    
+    arr = rotate_grid(arr)
+    return arr
+
+c_grid = cycle(grid)
+scores = dict()
+for i in range(1000):
+    s = score(c_grid)
+    if not s in scores.keys():
+        scores[s] = [i]
+    else:    
+        scores[s].append(i)
+    c_grid = cycle(c_grid)
+
+print(scores)

@@ -7,6 +7,8 @@ def read_input(input_file):
 
 raw_input = read_input("2024_04_1.txt")
 
+# Part One
+
 pattern = r"(XMAS)"
 
 def count_xmas(s):
@@ -31,6 +33,27 @@ xmas_counter_1 = 0
 for s in all_the_rows:
     xmas_counter_1 += count_xmas(s)
 
-            
-
 print(xmas_counter_1)
+
+
+# Part Two
+
+def three_by_threes():
+    res = []
+    for i in range(NO_ROWS - 2):
+        for j in range(NO_COLS - 2):
+            res.append(raw_input[i][j:j+3] + raw_input[i+1][j:j+3] + raw_input[i+2][j:j+3])
+    return res
+
+def is_xmas(three_by_three):
+    res = three_by_three[4] == "A"
+    res *= (three_by_three[0] == "M" and three_by_three[8] == "S") or (three_by_three[0] == "S" and three_by_three[8] == "M")
+    res *= (three_by_three[2] == "M" and three_by_three[6] == "S") or (three_by_three[2] == "S" and three_by_three[6] == "M")
+    return 1 if res else 0
+
+xmas_counter_2 = 0
+
+for three_by_three in three_by_threes():
+    xmas_counter_2 += is_xmas(three_by_three)
+
+print(xmas_counter_2)

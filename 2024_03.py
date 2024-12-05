@@ -7,18 +7,16 @@ def read_input(input_file):
     return lines
 
 raw_input = read_input("2024_03_1.txt")
+combined = "".join(raw_input)
 
 # Part One
 
-def multiply(s):
-    return int(s.split("(")[1].split(",")[0]) * int(s.split(",")[1].split(")")[0])
-
-
-pattern_mul = r"mul\(\d+,\d+\)"
+pattern_mul = r"mul\((\d+),(\d+)\)"
 
 total1 = 0
-for line in raw_input:
-    total1 +=sum(list(map(multiply,re.findall(pattern_mul, line))))
+for a, b in re.findall(pattern_mul, combined):
+    total1 += int(a) * int(b)
+    
 
 print(total1)
 
@@ -37,4 +35,4 @@ def sum_line(line):
             total += m * (1 if enabled else 0)
     return total
 
-print(sum([sum_line(line) for line in raw_input]))
+print(sum_line(combined))

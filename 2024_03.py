@@ -14,41 +14,27 @@ def multiply(s):
     return int(s.split("(")[1].split(",")[0]) * int(s.split(",")[1].split(")")[0])
 
 
-pattern = r"mul\(\d+,\d+\)"
+pattern_mul = r"mul\(\d+,\d+\)"
 
-total = 0
+total1 = 0
 for line in raw_input:
-    total +=sum(list(map(multiply,re.findall(pattern, line))))
+    total1 +=sum(list(map(multiply,re.findall(pattern_mul, line))))
 
-print(total)
+print(total1)
 
 # part Two
 
-pattern_do = r"do\(\)"
-pattern_dont = r"don't\(\)"
+pattern = r"mul\((\d+),(\d+)\)|(do\(\))|(don't\(\))"
 
-def extract_and_sort_line(line):
-    mul_matches = list(re.finditer(pattern, line))
-    do_matches = list(re.finditer(pattern_do, line))
-    dont_matches = list(re.finditer(pattern_dont, line))
-    return sorted(mul_matches + do_matches + dont_matches, key=cmp_to_key(lambda m1, m2: m1.start() - m2.start()))         
-            
-def enable_items(sorted_list):
-    multiplication_list = []
+def sum_line(line):
     enabled = True
-    for item in sorted_list:
-        if item.group() == "do()":
-            enabled = True
-        elif item.group() == "don't()":
-            enabled = False
+    total = 0
+    for a, b, do, dont in re.findall(pattern, line):
+        if do or dont:
+            enabled = bool(do)
         else:
-            if enabled:
-                multiplication_list.append(multiply(item.group()))
-    return multiplication_list
-           
+            m = int(a) * int(b)
+            total += m * (1 if enabled else 0)
+    return total
 
-total_2 = 0
-for line in raw_input:
-    total_2 += sum(enable_items(extract_and_sort_line(line)))
-
-print(total_2)
+print(sum([sum_line(line) for line in raw_input]))

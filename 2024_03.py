@@ -43,7 +43,7 @@ def enable_items(sorted_list):
             enabled = False
         else:
             if enabled:
-                multiplication_list.append(int(item.group().split("(")[1].split(",")[0]) * int(item.group().split(",")[1].split(")")[0]))
+                multiplication_list.append(multiply(item.group()))
     return multiplication_list
            
 
@@ -52,35 +52,3 @@ for line in raw_input:
     total_2 += sum(enable_items(extract_and_sort_line(line)))
 
 print(total_2)
-
-def extract_and_process_line(line):
-    # Combine all patterns into one regex
-    combined_pattern = f"{pattern}|{pattern_do}|{pattern_dont}"
-    
-    # Find all matches in the order they appear
-    matches = re.finditer(combined_pattern, line)
-    
-    # Process instructions
-    enabled = True
-    results = []
-    print(f"Processing line: {line.strip()}")
-    for match in matches:
-        instruction = match.group()
-        print(f"Match found: {instruction}")
-        if instruction == "do()":
-            enabled = True
-            print("Enabled mul instructions.")
-        elif instruction == "don't()":
-            enabled = False
-            print("Disabled mul instructions.")
-        else:
-            if enabled:
-                x, y = int(match.group().split(",")[1].split(")")[0])
-                product = x * y
-                results.append(product)
-                print(f"Multiplying: {x} * {y} = {product}")
-            else:
-                print(f"Ignoring mul instruction: {instruction}")
-    return results
-
-extract_and_process_line(raw_input[0])

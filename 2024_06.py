@@ -81,11 +81,8 @@ def play_part_two(obs_x, obs_y):
     guard = []
     guard.append(guard_initial_position(data))
     new_obstacles = [o for o in obstacles] + [(obs_x, obs_y)]
-    print(new_obstacles)
     while True:
         round = play_one_round(guard, new_obstacles, boundaries)
-        if round[0] == (6,3):
-            print(new_obstacles)
         if round == "Guard outside perimeters.":
             return False
         elif round in guard:

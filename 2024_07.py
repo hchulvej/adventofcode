@@ -27,6 +27,8 @@ def test_value(input_operands, operators, target_value):
                 result += input_operands[i + 1]
             case "*":
                 result *= input_operands[i + 1]
+            case "|":
+                result = int(str(result) + str(input_operands[i + 1]))
             
     return result == target_value
     
@@ -47,4 +49,22 @@ def check_line(line):
             return True
 
 
-print(sum([line[0] for line in data if check_line(line)]))   
+print(sum([line[0] for line in data if check_line(line)]))
+
+
+def combinations_part_2(n):
+    res = ["+", "*", "|"]
+    if n == 1:
+        return res
+    for _ in range(n - 1):
+        res = [r + "+" for r in res] + [r + "*" for r in res] + [r + "|" for r in res]
+    return [tuple(r) for r in res]
+
+def check_line_part_2(line):
+    target_value, input_operands = line
+    for operators in combinations_part_2(len(input_operands) - 1):
+        if test_value(input_operands, operators, target_value):
+            return True
+        
+
+print(sum([line[0] for line in data if check_line_part_2(line)]))

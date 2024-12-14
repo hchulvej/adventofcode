@@ -95,18 +95,8 @@ print(score(data))
 
 # Part Two
 
-#print(populate_file_system(data, part=2))
-#print(print_file_system(compact_file_system(populate_file_system(data, part=2), part=2)))
-
-checksum = 0
-current_index = 0
-for item in compact_file_system(populate_file_system(data, part=2), part=2):
-    for _ in range(item[1]):
-        if item[0] != "Free space":
-            checksum += int(item[0]) * current_index
-        current_index += 1
-
-print(checksum)
-        
+free_space = [(i, item) for i, item in enumerate(populate_file_system(data, part=2)) if item[0] == "Free space"]
+print(len(free_space))
+      
 
           

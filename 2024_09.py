@@ -52,47 +52,18 @@ print(f"Score part one: {score(populate_file_system(data))}")
 
 
 # Part Two
+## Not my own implementation
 
-file_system = populate_file_system(data)
+file_indices, free_space_indices, current_index = [], [], 0
 
-def min_index_free_space(fs, fl):
-    left_index = 0
-    try:
-        left_index = fs.index(".", left_index)
-    except ValueError:
-        left_index = len(fs)
-    while left_index + fl < len(fs):
-        if fs[left_index:left_index + fl].count(".") >= fl:
-            return left_index
-        try:
-            left_index = fs.index(".", left_index + fl)
-        except ValueError:
-            left_index = len(fs)
-    return len(fs)
-    
-      
-i = len(file_system) - 1
-moved = set()
-while i > 0:
-    if file_system[i] == ".":
-        i -= 1
-    else:
-        f_name = file_system[i]
-        f_length = file_system.count(f_name)
-        fs_min_index = min_index_free_space(file_system, f_length)
-        if fs_min_index < len(file_system) and (f_name not in moved) and fs_min_index < i:
-            moved.add(f_name)
-            for j in range(f_length):
-                file_system[fs_min_index + j] = f_name
-                file_system[i - j] = "."
-        else:
-            i -= f_length
-            
-score_part_two = 0
+for i, c in enumerate(data):
+    [file_indices, free_space_indices][i % 2] += [[*range(current_index, current_index := current_index + int(c))]]
 
-for i, item in enumerate(file_system):
-    if item != ".":
-        score_part_two += int(item) * i
-
-print(f"Score part two: {score_part_two}")
           
+for y in reversed(range(len(file_indices))):
+    for x in range(len(free_space_indices)):
+        if len(free_space_indices[x]) >= len(file_indices[y]) and file_indices[y][0] > free_space_indices[x][0]:
+            file_indices[y] = free_space_indices[x][:len(file_indices[y])]
+            free_space_indices[x] = free_space_indices[x][len(file_indices[y]):]
+
+print(sum((i * j) for i, f in enumerate(file_indices) for j in f))

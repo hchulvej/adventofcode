@@ -73,7 +73,7 @@ def min_index_free_space(fs, fl):
       
 i = len(file_system) - 1
 moved = set()
-while i >=0:
+while i > 0:
     if file_system[i] == ".":
         i -= 1
     else:

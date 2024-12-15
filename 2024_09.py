@@ -48,30 +48,11 @@ def score(file_system):
         checksum += int(compacted_file[i]) * i
     return checksum
         
-file_system = populate_file_system(data)
-
-print(file_system)
-    
-#print(score(data))    
+print(score(populate_file_system(data)))    
 
 
 # Part Two
 
-def free_space_groups(fs):
-    groups = []
-    for index, item in enumerate(fs):
-        if item == "." and (index > 1 and fs[index - 1] != "."):
-            min_index = index
-            length = 1
-            while (index + length < len(fs) and fs[index + length] == "."):
-                length += 1
-            groups.append([min_index, length])
-    return groups
-
-print(free_space_groups(file_system))
-
-def combine_free_space(fs):
-    return
 
       
 

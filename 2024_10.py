@@ -22,27 +22,36 @@ def on_map(point):
     return 0 <= x < map.shape[0] and 0 <= y < map.shape[1]
 
 for th in trailheads:
-    trails[th][0] = [th]
+    trails[th][0] = [[th[0], th[1]]]
     for i in range(1, 10):
         trails[th][i] = []
     
 def add_to_trail(trailhead, level):
     for th in trails[trailhead][level - 1]:
-        x, y = th
+        x, y = th[-2], th[-1]
         for dx, dy in directions:
-            nx, ny = x + dx, y + dy
-            if on_map((nx, ny)) and map[nx, ny] == level and (nx, ny) not in trails[trailhead][level]:
-                trails[trailhead][level].append((nx, ny))
+            new_x, new_y = x + dx, y + dy
+            if on_map((new_x, new_y)) and map[new_x, new_y] == level:
+                new_trail = th + [new_x, new_y]
+                trails[trailhead][level].append(new_trail)
     return
 
 
 for th in trailheads:
-    for level in range(1, 10):
-        add_to_trail(th, level)
+    for i in range(1, 10):
+        add_to_trail(th, i)
 
-def score(trailhead):
-    return len(trails[trailhead][9])
 
-scores = [score(th) for th in trailheads]
+# Part One
 
-print(sum(scores))
+reachable_nines = [set() for _ in range(len(trailheads))]
+
+for i, th in enumerate(trailheads):
+    for t in trails[th][9]:
+        reachable_nines[i].add((t[-2], t[-1]))
+
+print(sum([len(r) for r in reachable_nines]))
+
+# Part Two
+
+print(sum([len(trails[th][9]) for th in trailheads]))

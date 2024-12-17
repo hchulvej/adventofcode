@@ -7,7 +7,7 @@ def read_input(input_file):
 
 raw_input = np.array(read_input("2024_11_1.txt")[0])
 
-arrangement = raw_input
+arrangement = [0, 7, 6618216, 26481, 885, 42, 202642, 8791]
 
 def blink(arr):
     res = []
@@ -28,8 +28,8 @@ def blink(arr):
     return res
                 
 
-print(arrangement)
-for _ in range(25):
-    arrangement = blink(arrangement)
+t_aar = [0]
+for _ in range(75):
+    t_aar = blink(t_aar)
     #print(len(arrangement))
-print(len(arrangement))
+print(len(t_aar))

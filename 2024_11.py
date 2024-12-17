@@ -1,4 +1,6 @@
 import numpy as np
+from functools import lru_cache
+from math import log10
 
 def read_input(input_file):
     with open(input_file) as f:
@@ -9,27 +11,53 @@ raw_input = np.array(read_input("2024_11_1.txt")[0])
 
 arrangement = [0, 7, 6618216, 26481, 885, 42, 202642, 8791]
 
-def blink(arr):
+def blink(n):
     res = []
-    for val in arr:
-        if val == 0:
-            res.append(1)
-        elif len(str(val)) % 2 == 0:
-            s_val = str(val)
-            s_left = s_val[:len(s_val)//2]
-            s_right = s_val[(len(s_val) // 2):]
-            left = int(s_left)
-            right = int(s_right)
-            if left < 0 or right < 0:
-                print(s_val)
-            res += [left, right]
-        else:
-            res.append(val * 2024)
+    if n == 0:
+        res.append(1)
+    elif len(str(n)) % 2 == 0:
+        left, right = int(str(n)[:len(str(n)) // 2]), int(str(n)[len(str(n)) // 2:])
+        res.append(left)
+        res.append(right)
+    else:
+        res.append(n * 2024)
     return res
                 
+memo_five = dict()
 
-t_aar = [0]
-for _ in range(75):
-    t_aar = blink(t_aar)
-    #print(len(arrangement))
-print(len(t_aar))
+def blink_five_times(arr):
+    res = []
+    for n in arr:
+        if n in memo_five:
+            res.extend(memo_five[n])
+        else:
+            t_aar = [n]
+            for _ in range(5):
+                tmp = []
+                for i in t_aar:
+                    tmp.extend(blink(i))
+                t_aar = tmp
+            memo_five[n] = t_aar
+            res.extend(t_aar)
+    return res
+
+
+# Not my idea, but it works
+
+@lru_cache(None)
+def calc(n, blinks=25):
+	if blinks == 0:
+		return 1
+
+	if n == 0:
+		return calc(1, blinks - 1)
+
+	n_digits = int(log10(n)) + 1
+	if n_digits % 2 == 0:
+		power = 10**(n_digits // 2)
+		return calc(n // power, blinks - 1) + calc(n % power, blinks - 1)
+
+	return calc(n * 2024, blinks - 1)
+
+print(sum(calc(n) for n in arrangement))
+print(sum(calc(n, blinks=75) for n in arrangement))

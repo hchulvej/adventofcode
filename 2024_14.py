@@ -1,4 +1,5 @@
-
+import numpy as np
+import time
 
 def read_input(input_file):
     with open(input_file) as f:
@@ -50,3 +51,26 @@ print(robot_count[1] * robot_count[2] * robot_count[3] * robot_count[4])
 
 # Part Two
 
+# Reset robots
+for robot in robots:
+    robot["p"] = robot["ip"]
+
+def move_all(robots):
+    for robot in robots:
+        robot["p"] = move(robot, robot["p"])
+
+def draw_map(robots):
+    map = np.full((HEIGHT, WIDTH), ".")
+    for robot in robots:
+        x, y = robot["p"]
+        map[y][x] = "*"
+    np.savetxt("2024_14_map.txt", map, fmt="%s")
+    return
+
+for _ in range(100):
+    move_all(robots)
+    
+for _ in range(25):    
+    time.sleep(3)
+    move_all(robots)
+    draw_map(robots)

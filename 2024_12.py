@@ -33,15 +33,55 @@ regions = [[id_to_coordinates[id] for id in group] for group in uf.groups()]
 
 # Part One
 
-def price(region):
+def price_part_one(region):
     area = len(region)
-    perimeter = 4 * area
+    perimeter = 0
     for cell in region:
         x, y = cell
         for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-             nx, ny = x + dx, y + dy
-             if (nx, ny) in region:
-                 perimeter -= 1
+            nx, ny = x + dx, y + dy
+            if (nx, ny) not in region:
+                 perimeter += 1
     return area * perimeter                     
 
-print(sum(price(region) for region in regions))
+
+print(sum(price_part_one(region) for region in regions))
+
+
+# Part Two
+
+def price_part_two(region):
+    area = len(region)
+    perimeter = 0
+    for cell in region:
+        row, col = cell
+        NORTH, SOUTH, EAST, WEST = (row - 1, col), (row + 1, col), (row, col + 1), (row, col - 1)
+        NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST = (row - 1, col - 1), (row - 1, col + 1), (row + 1, col - 1), (row + 1, col + 1)
+        # Øverste kant er en ny kant
+        if NORTH not in region:
+            # Der er en kant øverst
+            if (WEST not in region) or (NORTH_WEST in region):
+                # Det er en ny kant
+                perimeter += 1
+        # Venstre kant er en ny kant
+        if WEST not in region:
+            # Der er en kant venstre
+            if (NORTH not in region) or (NORTH_WEST in region):
+                # Det er en ny kant
+                perimeter += 1
+        # Nederste kant er en ny kant
+        if SOUTH not in region:
+            # Der er en kant nederst
+            if (WEST not in region) or (SOUTH_WEST in region):
+                # Det er en ny kant
+                perimeter += 1
+        # Højre kant er en ny kant
+        if EAST not in region:
+            # Der er en kant højre
+            if (SOUTH not in region) or (SOUTH_EAST in region):
+                # Det er en ny kant
+                perimeter += 1
+    return area * perimeter
+
+
+print(sum(price_part_two(region) for region in regions))

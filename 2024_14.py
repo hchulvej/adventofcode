@@ -67,10 +67,12 @@ def draw_map(robots):
     np.savetxt("2024_14_map.txt", map, fmt="%s")
     return
 
-for _ in range(100):
+NO_ROBOTS = len(robots)
+for i in range(10000):
     move_all(robots)
+    if NO_ROBOTS == len(set([robot["p"] for robot in robots])):
+        print(i+1)
+        draw_map(robots)
+        break
     
-for _ in range(25):    
-    time.sleep(3)
-    move_all(robots)
-    draw_map(robots)
+    

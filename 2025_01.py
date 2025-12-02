@@ -5,8 +5,12 @@ with open("2025_01.txt") as f:
 def change_rotation(rotation):
     if rotation[0] == "L":
         temp = int(rotation[1:])
+        full_rounds = 0
+        while temp >= 100:
+            full_rounds += 1
+            temp -= 100
         temp = 100 - temp
-        return "R" + str(temp)
+        return "R" + str(temp + full_rounds * 100)
     return rotation
 
 def move_dial(dial, rotation):
@@ -25,30 +29,29 @@ for line in lines:
 print("Password:", number_of_zeros)
 
 ## Part 2
+#
+# We use the number_of_zeroes from part 1 as a starting point
+# In part 2 we count zeroes if
+# - we don't land on zero
+# - we land on zero but the number of moves is more than 100
+# 
 def zero_in_positions(dial, rotation):
-    number_of_zeros = 0
     rot = int(rotation[1:])
-    if rotation[0] == "R":
-        while rot >= 100:
-            number_of_zeros += 1
-            rot -= 100
-        if dial + rot >= 100:
-            number_of_zeros += 1   
+    if move_dial(dial, rotation) == 0:
+        if rot < 100:
+            return 0
+        return rot // 100 - 1
     else:
-        while rot >= 100:
-            rot -= 100
-            number_of_zeros += 1
-        if dial - rot < 0:
-            number_of_zeros += 1
-    return number_of_zeros
+        return rot // 100
+           
         
 
 starting_dial = 50
-zeroes_hit = 0
+zeroes_hit = number_of_zeros
 for line in lines:
     zeroes_hit += zero_in_positions(starting_dial, line)
     starting_dial = move_dial(starting_dial, line)
 print("Zeroes hit:", zeroes_hit)
 
-print(zero_in_positions(50, "R1000"))
+print(change_rotation("L727"))  # Example usage of change_rotation function
     

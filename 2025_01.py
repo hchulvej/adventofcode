@@ -1,10 +1,5 @@
-from pathlib import Path
+import os
 
-# Make the input path relative to this script's directory so the script
-# can be run from any working directory.
-input_path = Path(__file__).parent / "2025_01.txt"
+BASE = os.path.dirname(__file__)
 
-with input_path.open("r", encoding="utf-8") as f:
-    lines = [line.strip() for line in f]
-
-print(lines[2])
+print(os.path.join(BASE, "2025_01.txt"))

@@ -29,29 +29,18 @@ for line in lines:
 print("Password:", number_of_zeros)
 
 ## Part 2
-#
-# We use the number_of_zeroes from part 1 as a starting point
-# In part 2 we count zeroes if
-# - we don't land on zero
-# - we land on zero but the number of moves is more than 100
-# 
-def zero_in_positions(dial, rotation):
-    rot = int(rotation[1:])
-    if move_dial(dial, rotation) == 0:
-        if rot < 100:
-            return 0
-        return rot // 100 - 1
-    else:
-        return rot // 100
-           
-        
-
-starting_dial = 50
-zeroes_hit = number_of_zeros
+number_of_zeros = 0
+position = 50
 for line in lines:
-    zeroes_hit += zero_in_positions(starting_dial, line)
-    starting_dial = move_dial(starting_dial, line)
-print("Zeroes hit:", zeroes_hit)
-
-print(change_rotation("L727"))  # Example usage of change_rotation function
+    no_of_moves = int(line[1:])
+    direction = line[0]
+    for _ in range(no_of_moves):
+        if direction == "R":
+            position = (position + 1) % 100
+        else:
+            position = (position - 1) % 100
+        if position == 0:
+            number_of_zeros += 1
     
+
+print("Total number of zeroes:",  number_of_zeros)

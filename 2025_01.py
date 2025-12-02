@@ -26,16 +26,21 @@ print("Password:", number_of_zeros)
 
 ## Part 2
 def zero_in_positions(dial, rotation):
+    number_of_zeros = 0
     rot = int(rotation[1:])
     if rotation[0] == "R":
-        return (dial + rot) // 100
+        while rot >= 100:
+            number_of_zeros += 1
+            rot -= 100
+        if dial + rot >= 100:
+            number_of_zeros += 1   
     else:
-        times = 0
-        while dial - rot < 0:
-            dial += 100
-            times += 1
-            return True
-    return 0
+        while rot >= 100:
+            rot -= 100
+            number_of_zeros += 1
+        if dial - rot < 0:
+            number_of_zeros += 1
+    return number_of_zeros
         
 
 starting_dial = 50
@@ -44,4 +49,6 @@ for line in lines:
     zeroes_hit += zero_in_positions(starting_dial, line)
     starting_dial = move_dial(starting_dial, line)
 print("Zeroes hit:", zeroes_hit)
+
+print(zero_in_positions(50, "R1000"))
     

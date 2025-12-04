@@ -53,4 +53,4 @@ def total_joltage_part2():
         total += output_joltage_part2(data_line)
     return total
 
-print(total_joltage_part2())
+print("Total output joltage for part 2: ", total_joltage_part2())

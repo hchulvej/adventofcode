@@ -18,14 +18,14 @@ data = read_data()
 ## Part 1
 def grand_total(data):
     total = 0
-    for j in range(len(data)):
-        if data[-1][j] == "+":
-            total += sum(data[i][j] for i in range(len(data) - 1))
-        else:  # "*"
+    for col in range(len(data[0])):
+        if data[-1][col] == "+":
+            total += sum(data[i][col] for i in range(len(data) - 1))
+        if data[-1][col] == "*":
             prod = 1
             for i in range(len(data) - 1):
-                prod *= data[i][j]
+                prod *= data[i][col]
             total += prod
     return total
 
-print(grand_total(data))
+print("Part 1: The grand total is", grand_total(data))

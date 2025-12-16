@@ -2,7 +2,7 @@ from collections import deque
 from collections import defaultdict
 
 def read_data():
-    with open("2025_07.txt") as f:
+    with open("2025_07_test.txt") as f:
         return f.read().split("\n")
 
 
@@ -39,19 +39,37 @@ while queue:
 print("Part 1: The number of splitters reached is", len(splitters))
 
 ## Part 2
-visited_points = {r : set() for r in range(rows)}
-for vp in visited:
-    visited_points[vp[0]].add((vp[0], vp[1]))    
+# We want to create a function no_of_rows(r,c) that returns the number of rows
+# that can be reached from starting position to position (r,c).
 
-ways_prev = defaultdict(int)
-ways_prev[start] = 1
+visited_per_row = defaultdict(list)
 
-for r in range(1, rows):
-    ways_cur = defaultdict(int)
-    for (_, c) in visited_points[r]:
-        ways_cur[c] = ways_prev[c-1] + ways_prev[c] + ways_prev[c+1]
-    ways_prev = ways_cur
+for r, c in visited:
+    visited_per_row[r].append((r,c))
 
-no_of_paths = sum(ways_prev.values())  # all endpoints in last row
 
-print("Part 2: The total number of paths to the bottom is", no_of_paths)
+paths_of_length = defaultdict(list)
+paths_of_length[0] = [[(0, data[0].index("S"))]]
+
+for length in range(1, rows):
+    for path in paths_of_length[length - 1]:
+        r, c = path[-1]
+        if (r + 1, c) in visited:
+            new_path = path + [(r + 1, c)]
+            paths_of_length[length].append(new_path)
+        if (r + 1, c - 1) in visited:
+            new_path = path + [(r + 1, c - 1)]
+            paths_of_length[length].append(new_path)
+        if (r + 1, c + 1) in visited:
+            new_path = path + [(r + 1, c + 1)]
+            paths_of_length[length].append(new_path)
+
+
+def path_to_str(path):
+    return "".join(f"({r},{c})" for r, c in path)
+
+unique_paths = set()
+for path in paths_of_length[rows - 1]:
+    unique_paths.add(path_to_str(path))
+    
+print(len(unique_paths))

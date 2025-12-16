@@ -2,7 +2,7 @@ from collections import deque
 from collections import defaultdict
 
 def read_data():
-    with open("2025_07_test.txt") as f:
+    with open("2025_07.txt") as f:
         return f.read().split("\n")
 
 
@@ -39,37 +39,59 @@ while queue:
 print("Part 1: The number of splitters reached is", len(splitters))
 
 ## Part 2
-# We want to create a function no_of_rows(r,c) that returns the number of rows
-# that can be reached from starting position to position (r,c).
-
-visited_per_row = defaultdict(list)
-
-for r, c in visited:
-    visited_per_row[r].append((r,c))
 
 
-paths_of_length = defaultdict(list)
-paths_of_length[0] = [[(0, data[0].index("S"))]]
+def count_paths_efficiently():
+    """
+    Sparse DP: counts paths from 'S' (row 0) to last row.
+    Time: O(sum_reachable_per_row * 3) ~ O(total_reached_states)
+    Space: O(reachable columns in a row)
+    """
 
-for length in range(1, rows):
-    for path in paths_of_length[length - 1]:
-        r, c = path[-1]
-        if (r + 1, c) in visited:
-            new_path = path + [(r + 1, c)]
-            paths_of_length[length].append(new_path)
-        if (r + 1, c - 1) in visited:
-            new_path = path + [(r + 1, c - 1)]
-            paths_of_length[length].append(new_path)
-        if (r + 1, c + 1) in visited:
-            new_path = path + [(r + 1, c + 1)]
-            paths_of_length[length].append(new_path)
+    # Starting column
+    start_c = data[0].find("S")
+    if start_c == -1:
+        return 0
 
+    # Optional: precompute passable columns per row for faster membership
+    # visited is assumed to be a set of (r, c)
+    passable_cols = [set() for _ in range(rows)]
+    for (r, c) in visited:
+        if 0 <= r < rows:
+            passable_cols[r].add(c)
 
-def path_to_str(path):
-    return "".join(f"({r},{c})" for r, c in path)
+    prev = {start_c: 1}
 
-unique_paths = set()
-for path in paths_of_length[rows - 1]:
-    unique_paths.add(path_to_str(path))
-    
-print(len(unique_paths))
+    for r in range(rows - 1):
+        row_next = data[r + 1]
+        next_ = defaultdict(int)
+
+        # Only iterate reached columns
+        for c_prev, ways in prev.items():
+            if ways == 0:
+                continue
+
+            # Try three moves
+            for move in (-1, 0, 1):
+                c_next = c_prev + move
+                if not (0 <= c_next < cols):
+                    continue
+
+                # Check passable
+                if c_next not in passable_cols[r + 1]:
+                    continue
+
+                # Movement rules
+                if move == 0:
+                    # Straight always allowed
+                    next_[c_next] += ways
+                else:
+                    # Diagonal allowed only if character at (r+1, c_prev) is '^'
+                    if 0 <= c_prev < cols and row_next[c_prev] == "^":
+                        next_[c_next] += ways
+
+        prev = next_
+
+    return sum(prev.values())
+
+print("Part 2: The number of distinct paths to the last row is", count_paths_efficiently())

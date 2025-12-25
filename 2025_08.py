@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 
 def read_data():
@@ -50,3 +51,24 @@ def grupper_punkterne():
 grupper_punkterne()
 print(gruppering)
 print({ i : len(gruppering[i]) for i in range(len(data)) if len(gruppering[i]) > 0 })
+=======
+from collections import defaultdict
+
+def read_data():
+    with open("2025_08_test.txt") as f:
+        return f.read().split("\n")
+
+data = read_data()
+points = defaultdict(tuple)
+
+def parse_point(line):
+    parts = line.split(",")
+    return (int(parts[0]), int(parts[1]), int(parts[2]))
+
+def read_points():
+    for i in range(len(data)):
+        points[i] = parse_point(data[i])
+        
+
+read_points()
+>>>>>>> cb489a9eb752427b8f5767abf4a92e1736432406

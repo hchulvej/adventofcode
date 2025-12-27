@@ -24,3 +24,4 @@ print("Part 1: ",rectangle(sorted_pairs[-1][0], sorted_pairs[-1][1]))
 
 ## Part 2 ##
 
+# Too difficult for now

@@ -1,85 +1,48 @@
+import re, itertools
 
-def read_light_diagram(ldiagram):
-    res = []
-    for indicator in ldiagram[1:-1]:
-        res.append(indicator)
-    return res
 
-def read_wiring_schematics(schematics):
-    res = []
-    for light in schematics:
-        cs = light[1:-1].split(",")
-        res.append(list(map(int, cs)))
-    return res
-
-def read_joltage_requirement(jrequirement):
-    req = jrequirement[1:-1]
-    return sorted(list(map(int, req.split(","))))
-
-def change_light(current_state):
-    if current_state == ".":
-        return "#"
-    else:
-        return "."  
-
-def turn_lights_on(light_diagram, button_schematic):
-    for pos in button_schematic:
-        light_diagram[pos] = change_light(light_diagram[pos])
-    return light_diagram
-
-def required_wiring_schematics(light_diagram):
-    return sorted([i for i in range(len(light_diagram)) if light_diagram[i] == "#"])
-
-def add_schemes(wschem1, wschem2):
-    res = list(wschem1)
-    for w in wschem2:
-        if w in res:
-            res.remove(w)
-        else:
-            res.append(w)
-    return sorted(res)
+## Part 1 ##
+## Source: https://www.youtube.com/watch?v=OJ4dxrIfDfs
 
 def read_data():
-    with open("2025_10_test.txt") as f:
-        res = []
+    with open("2025_10.txt") as f:
+        target_groups, button_groups = [], []
         for l in f.read().split("\n"):
-            if l.strip():
-                ls = l.split(" ")
-                machine = []
-                machine.append(read_light_diagram(ls[0]))
-                temp = []
-                for n in ls[1:-1]:
-                    temp.append(n)
-                machine.append(read_wiring_schematics(temp))
-                machine.append(read_joltage_requirement(ls[-1]))
-                res.append(machine)
-        return res
+            match = re.match(r"^\[([.#]+)\] ([()\d, ]+) \{([\d,]+)\}$", l.strip())
+            target, buttons, _ = match.groups()
+            target = { i for i, c in enumerate(target) if c == "#" }
+            buttons = [set(map(int, button[1:-1].split(","))) for button in buttons.split(" ")]
+            target_groups.append(target)
+            button_groups.append(buttons)
+        return target_groups, button_groups
 
 data = read_data()
+button_groups = data[1]
+taget_groups = data[0]
 
-def scheme_additions(data_line):
-    light_diagram = data_line[0]
-    starting_diagram = ["." for _ in light_diagram]
-    wiring_schematics = data_line[1]
+
+
+def solve(target, buttons):
+    total = 0
+    for count in range(1, len(buttons) + 1):
+        for attempt in itertools.combinations(buttons, r=count):
+            lights = set()
+            for button in attempt:
+                lights ^= button # {a, b, c} XOR {b, c, d} = {a, d} - ^= is XOR
+            if lights == target:
+                total += count
+                break
+        else:
+            continue
+        break
     
-    req_wiring = required_wiring_schematics(light_diagram)
-    button_presses = dict()
-    button_presses[1] = wiring_schematics
-    
-    problem_solved = False
-    no_of_presses = 1
-    while not problem_solved:
-        for scheme in button_presses[no_of_presses]:
-            new_light_diagram = turn_lights_on(starting_diagram.copy(), scheme)
-            new_req_wiring = required_wiring_schematics(new_light_diagram)
-            if new_req_wiring == req_wiring:
-                problem_solved = True
-                return no_of_presses, scheme
-            button_presses[no_of_presses + 1] = [add_schemes(scheme, s) for s in wiring_schematics for scheme in button_presses[no_of_presses]]
-        no_of_presses += 1
+    return total
+                
+def solve_all(target_groups, button_groups):
+    results = []
+    for target, buttons in zip(target_groups, button_groups):
+        results.append(solve(target, buttons))
+    return results
 
+print("Part 1: ", sum(solve_all(taget_groups, button_groups)))
 
-for i in range(len(data)):
-    print("Machine", i + 1, "requires", scheme_additions(data[i])[0], "button presses.")
-
-#print("Part 1:", sum([scheme_additions(data[i])[0] for i in range(len(data))]))
